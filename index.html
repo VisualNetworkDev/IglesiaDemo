@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Iglesia Nueva Esperanza</title>
+  <meta name="description" content="Aplicacion publica de una iglesia local con solicitudes, eventos, ministerios, contacto y contribuciones manuales.">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body class="church-app">
+  <header class="app-header">
+    <div class="brand-row">
+      <a class="app-brand" href="#" data-view-link="home" aria-label="Ir al inicio">
+        <img id="churchLogo" src="assets/img/placeholder-logo.png" alt="Logo de la iglesia">
+        <span id="churchName">Iglesia Nueva Esperanza</span>
+      </a>
+      <button type="button" class="live-button live-only" data-open-live hidden>Ahora En Vivo</button>
+    </div>
+    <nav class="app-tabs" aria-label="Navegacion principal">
+      <button type="button" class="active" data-view-link="home">Inicio</button>
+      <button type="button" data-view-link="church">Iglesia</button>
+      <button type="button" data-view-link="agenda">Agenda</button>
+      <button type="button" data-view-link="requests">Ayuda</button>
+      <button type="button" data-view-link="giving">Contribuir</button>
+    </nav>
+  </header>
+
+  <main class="app-stage">
+    <section class="app-screen active" data-screen="home" aria-label="Inicio">
+      <div class="screen-scroll home-layout">
+        <article class="hero-panel">
+          <p class="eyebrow">Fe, comunidad y servicio</p>
+          <h1 id="heroTitle">Bienvenido a Iglesia Nueva Esperanza</h1>
+          <p id="heroMessage">Un lugar para adorar, recibir apoyo, crecer en la fe y servir a nuestra ciudad con amor.</p>
+          <div class="home-actions">
+            <button type="button" class="action-card primary" data-open-request="newVisitor">
+              <span>Primera vez</span>
+              <strong>Quiero mas informacion</strong>
+            </button>
+            <button type="button" class="action-card" data-open-request="pastoralVisit">
+              <span>Cuidado pastoral</span>
+              <strong>Solicitar visita</strong>
+            </button>
+            <button type="button" class="action-card" data-view-link="agenda">
+              <span>Agenda</span>
+              <strong>Ver eventos</strong>
+            </button>
+            <button type="button" class="action-card live-only" data-open-live hidden>
+              <span>Transmision</span>
+              <strong>Ahora En Vivo</strong>
+            </button>
+          </div>
+        </article>
+
+        <section class="summary-panel">
+          <div>
+            <p class="eyebrow">Horarios</p>
+            <h2>Servicios</h2>
+            <p id="serviceTimes">Domingo 10:00 AM · Miercoles 7:30 PM</p>
+          </div>
+          <div>
+            <p class="eyebrow">Contacto</p>
+            <h2>Ubicacion</h2>
+            <p id="footerAddress">Direccion por configurar</p>
+            <p id="footerContact">Email y telefono por configurar</p>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="app-screen" data-screen="church" aria-label="Iglesia">
+      <div class="screen-scroll two-column">
+        <section class="panel">
+          <p class="eyebrow">Nuestra casa</p>
+          <h2>Sobre la iglesia</h2>
+          <div class="info-list">
+            <article>
+              <h3>Mision</h3>
+              <p id="missionText">Guiar a las personas a conocer a Cristo, fortalecer familias y servir con compasion.</p>
+            </article>
+            <article>
+              <h3>Vision</h3>
+              <p id="visionText">Ser una iglesia saludable, cercana y comprometida con transformar vidas por medio del evangelio.</p>
+            </article>
+            <article>
+              <h3>Historia</h3>
+              <p id="historyText">Nacimos como una comunidad de fe local con el deseo de abrir puertas, escuchar necesidades y caminar junto a cada persona.</p>
+            </article>
+            <article>
+              <h3>Pastor principal</h3>
+              <p id="pastorText">Informacion pastoral disponible proximamente.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel">
+          <p class="eyebrow">Servimos juntos</p>
+          <h2>Ministerios</h2>
+          <div id="ministriesGrid" class="ministry-list" aria-live="polite"></div>
+        </section>
+      </div>
+    </section>
+
+    <section class="app-screen" data-screen="agenda" aria-label="Agenda">
+      <div class="screen-scroll two-column">
+        <section class="panel live-panel live-only" hidden>
+          <p class="eyebrow">Transmision</p>
+          <h2>Ahora En Vivo</h2>
+          <p>La transmision esta disponible en el enlace oficial de la iglesia.</p>
+          <button type="button" class="button primary" data-open-live>Abrir transmision</button>
+        </section>
+        <section class="panel wide-panel">
+          <p class="eyebrow">Agenda</p>
+          <h2>Eventos</h2>
+          <div id="eventsGrid" class="event-feed" aria-live="polite"></div>
+        </section>
+      </div>
+    </section>
+
+    <section class="app-screen" data-screen="requests" aria-label="Solicitudes">
+      <div class="request-app">
+        <aside class="request-sidebar">
+          <p class="eyebrow">Estamos para ayudar</p>
+          <h2>Solicitudes</h2>
+          <p>Elige el motivo y completa solo la informacion necesaria. El equipo correspondiente revisara tu solicitud y dara seguimiento.</p>
+          <div class="request-options" role="tablist" aria-label="Tipos de solicitud">
+            <button type="button" class="active" data-request-tab="newVisitor">Soy nuevo</button>
+            <button type="button" data-request-tab="pastoralVisit">Visita</button>
+            <button type="button" data-request-tab="counseling">Consejeria</button>
+            <button type="button" data-request-tab="assistance">Asistencia</button>
+            <button type="button" data-request-tab="prayer">Oracion</button>
+            <button type="button" data-request-tab="contact">Contacto</button>
+            <button type="button" data-request-tab="contribution">Contribucion</button>
+          </div>
+        </aside>
+
+        <div class="request-content">
+          <form class="request-card active" data-request-form="newVisitor" data-api-form data-action="submitNewVisitorRequest">
+            <div class="form-head">
+              <span>1 de 7</span>
+              <h3>Soy nuevo / quiero mas informacion</h3>
+              <p>Comparte como podemos ayudarte a conectar con la iglesia.</p>
+            </div>
+            <div class="form-grid">
+              <label>Nombre<input name="name" required autocomplete="name"></label>
+              <label>Email<input name="email" type="email" autocomplete="email"></label>
+              <label>Telefono<input name="phone" autocomplete="tel"></label>
+              <label>Me interesa
+                <select name="interest">
+                  <option>Recibir una llamada</option>
+                  <option>Conocer horarios</option>
+                  <option>Hablar con un pastor</option>
+                  <option>Servir como voluntario</option>
+                </select>
+              </label>
+              <label class="full">Mensaje<textarea name="message" rows="4"></textarea></label>
+            </div>
+            <label class="consent-box">
+              <input name="communicationConsent" type="checkbox" value="accepted" required>
+              <span>Autorizo a la iglesia a comunicarse conmigo para compartir informacion, responder mis preguntas y coordinar seguimiento por llamada, texto o email.</span>
+            </label>
+            <input type="hidden" name="communicationConsentText" value="Consentimiento para comunicaciones informativas por llamada, texto o email.">
+            <button type="submit" class="button primary">Enviar informacion</button>
+            <p class="form-status" role="status"></p>
+          </form>
+
+          <form class="request-card" data-request-form="pastoralVisit" data-api-form data-action="submitPastoralVisitRequest">
+            <div class="form-head">
+              <span>2 de 7</span>
+              <h3>Solicitud de visita</h3>
+              <p>Comparte direccion, disponibilidad y motivo para coordinar una visita.</p>
+            </div>
+            <div class="form-grid">
+              <label>Nombre<input name="name" required autocomplete="name"></label>
+              <label>Email<input name="email" type="email" autocomplete="email"></label>
+              <label>Telefono<input name="phone" required autocomplete="tel"></label>
+              <label>Direccion<input name="address" required autocomplete="street-address"></label>
+              <label>Disponibilidad<input name="availability"></label>
+              <label class="full">Motivo<textarea name="message" rows="4" required></textarea></label>
+            </div>
+            <label class="consent-box">
+              <input name="communicationConsent" type="checkbox" value="accepted" required>
+              <span>Autorizo a la iglesia a comunicarse conmigo para coordinar esta visita por llamada, texto o email. Entiendo que la visita sera confirmada antes de cualquier desplazamiento.</span>
+            </label>
+            <input type="hidden" name="communicationConsentText" value="Consentimiento para comunicaciones sobre visita pastoral por llamada, texto o email.">
+            <button type="submit" class="button primary">Solicitar visita</button>
+            <p class="form-status" role="status"></p>
+          </form>
+
+          <form class="request-card" data-request-form="counseling" data-api-form data-action="submitCounselingRequest">
+            <div class="form-head">
+              <span>3 de 7</span>
+              <h3>Solicitud de consejeria</h3>
+              <p>El equipo revisara disponibilidad y te contactara para coordinar una cita.</p>
+            </div>
+            <div class="form-grid">
+              <label>Nombre<input name="name" required autocomplete="name"></label>
+              <label>Email<input name="email" type="email" autocomplete="email"></label>
+              <label>Telefono<input name="phone" autocomplete="tel"></label>
+              <label>Disponibilidad<input name="availability" placeholder="Dias y horas preferidas"></label>
+              <label class="full">Motivo<textarea name="message" rows="4" required></textarea></label>
+            </div>
+            <label class="consent-box">
+              <input name="communicationConsent" type="checkbox" value="accepted" required>
+              <span>Autorizo a la iglesia a comunicarse conmigo para coordinar consejeria pastoral por llamada, texto o email. Entiendo que este formulario no sustituye servicios profesionales, medicos, legales o de emergencia.</span>
+            </label>
+            <input type="hidden" name="communicationConsentText" value="Consentimiento para comunicaciones sobre consejeria pastoral por llamada, texto o email.">
+            <button type="submit" class="button primary">Solicitar consejeria</button>
+            <p class="form-status" role="status"></p>
+          </form>
+
+          <form class="request-card" data-request-form="assistance" data-api-form data-action="submitAssistanceRequest">
+            <div class="form-head">
+              <span>4 de 7</span>
+              <h3>Solicitud de asistencia</h3>
+              <p>Indica la necesidad principal para que el equipo pueda revisar el caso.</p>
+            </div>
+            <div class="form-grid">
+              <label>Nombre<input name="name" required autocomplete="name"></label>
+              <label>Email<input name="email" type="email" autocomplete="email"></label>
+              <label>Telefono<input name="phone" autocomplete="tel"></label>
+              <label>Tipo de ayuda<input name="assistanceType" required></label>
+              <label class="full">Descripcion<textarea name="message" rows="4" required></textarea></label>
+            </div>
+            <label class="consent-box">
+              <input name="communicationConsent" type="checkbox" value="accepted" required>
+              <span>Autorizo a la iglesia a contactarme para evaluar esta solicitud y coordinar seguimiento por llamada, texto o email. Entiendo que el envio no garantiza aprobacion de ayuda.</span>
+            </label>
+            <input type="hidden" name="communicationConsentText" value="Consentimiento para comunicaciones sobre solicitud de asistencia por llamada, texto o email.">
+            <button type="submit" class="button primary">Enviar solicitud</button>
+            <p class="form-status" role="status"></p>
+          </form>
+
+          <form class="request-card" data-request-form="prayer" data-api-form data-action="submitPrayerRequest">
+            <div class="form-head">
+              <span>5 de 7</span>
+              <h3>Solicitud de oracion</h3>
+              <p>Comparte tu peticion con el nivel de privacidad que prefieras.</p>
+            </div>
+            <div class="form-grid">
+              <label>Nombre<input name="name" required autocomplete="name"></label>
+              <label>Email<input name="email" type="email" autocomplete="email"></label>
+              <label>Telefono<input name="phone" autocomplete="tel"></label>
+              <label>Privacidad
+                <select name="privacy">
+                  <option value="Pastoral">Solo equipo pastoral</option>
+                  <option value="Equipo de oracion">Equipo de oracion</option>
+                </select>
+              </label>
+              <label class="full">Peticion<textarea name="message" rows="4" required></textarea></label>
+            </div>
+            <label class="consent-box">
+              <input name="communicationConsent" type="checkbox" value="accepted" required>
+              <span>Autorizo a la iglesia a comunicarse conmigo sobre esta peticion por llamada, texto o email. Entiendo que mi informacion sera tratada con discrecion pastoral y no debo usar este formulario para emergencias.</span>
+            </label>
+            <input type="hidden" name="communicationConsentText" value="Consentimiento para comunicaciones pastorales sobre solicitud de oracion por llamada, texto o email.">
+            <button type="submit" class="button primary">Enviar peticion</button>
+            <p class="form-status" role="status"></p>
+          </form>
+
+          <form class="request-card" data-request-form="contact" data-api-form data-action="submitContactRequest">
+            <div class="form-head">
+              <span>6 de 7</span>
+              <h3>Contacto general</h3>
+              <p>Envia tu mensaje y el equipo correspondiente dara seguimiento.</p>
+            </div>
+            <div class="form-grid">
+              <label>Nombre<input name="name" required autocomplete="name"></label>
+              <label>Email<input name="email" type="email" required autocomplete="email"></label>
+              <label>Telefono<input name="phone" autocomplete="tel"></label>
+              <label>Asunto<input name="subject" required></label>
+              <label class="full">Mensaje<textarea name="message" rows="4" required></textarea></label>
+            </div>
+            <label class="consent-box">
+              <input name="communicationConsent" type="checkbox" value="accepted" required>
+              <span>Autorizo a la iglesia a comunicarse conmigo para responder este mensaje por llamada, texto o email. Entiendo que puedo solicitar no recibir comunicaciones futuras no relacionadas con esta solicitud.</span>
+            </label>
+            <input type="hidden" name="communicationConsentText" value="Consentimiento para comunicaciones sobre contacto general por llamada, texto o email.">
+            <button type="submit" class="button primary">Enviar mensaje</button>
+            <p class="form-status" role="status"></p>
+          </form>
+
+          <form class="request-card" data-request-form="contribution" data-api-form data-action="reportContribution">
+            <div class="form-head">
+              <span>7 de 7</span>
+              <h3>Reportar contribucion enviada</h3>
+              <p>Este reporte no procesa cobros. Ayuda a confirmar un aporte enviado por metodos manuales.</p>
+            </div>
+            <div class="form-grid">
+              <label>Nombre completo<input name="name" required autocomplete="name"></label>
+              <label>Email<input name="email" type="email" autocomplete="email"></label>
+              <label>Telefono<input name="phone" autocomplete="tel"></label>
+              <label>Tipo
+                <select name="type" required>
+                  <option value="diezmo">Diezmo</option>
+                  <option value="ofrenda">Ofrenda</option>
+                  <option value="donacion">Donacion</option>
+                </select>
+              </label>
+              <label>Monto<input name="amount" type="number" min="0.01" step="0.01" required></label>
+              <label>Metodo
+                <select name="method" required>
+                  <option>Cash App</option>
+                  <option>Zelle</option>
+                  <option>Cash</option>
+                  <option>Check</option>
+                  <option>Otro</option>
+                </select>
+              </label>
+              <label>Referencia<input name="reference" placeholder="Codigo, nota o numero de check"></label>
+              <label>Fecha<input name="date" type="date" required></label>
+              <label class="full">Notas<textarea name="notes" rows="3"></textarea></label>
+            </div>
+            <label class="consent-box">
+              <input name="communicationConsent" type="checkbox" value="accepted" required>
+              <span>Autorizo a la iglesia a comunicarse conmigo sobre este reporte por llamada, texto o email. Entiendo que tesoreria revisara la informacion con discrecion.</span>
+            </label>
+            <input type="hidden" name="communicationConsentText" value="Consentimiento para comunicaciones sobre reporte de contribucion por llamada, texto o email.">
+            <button type="submit" class="button primary">Enviar reporte</button>
+            <p class="form-status" role="status"></p>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="app-screen" data-screen="giving" aria-label="Contribuir">
+      <div class="screen-scroll giving-layout">
+        <section class="panel">
+          <p class="eyebrow">Generosidad</p>
+          <h2>Diezmos y donaciones</h2>
+          <p>Las contribuciones se reciben por metodos manuales. Revisa las instrucciones y luego reporta el aporte enviado si necesitas confirmacion.</p>
+          <div class="giving-list">
+            <article>
+              <h3>Cash App</h3>
+              <p id="cashAppInstructions">Consulta las instrucciones vigentes con el equipo de tesoreria.</p>
+            </article>
+            <article>
+              <h3>Zelle</h3>
+              <p id="zelleInstructions">Consulta las instrucciones vigentes con el equipo de tesoreria.</p>
+            </article>
+            <article>
+              <h3>Cash</h3>
+              <p id="cashInstructions">Entrega directa al equipo autorizado y solicita confirmacion.</p>
+            </article>
+            <article>
+              <h3>Check u otro metodo</h3>
+              <p id="checkInstructions">Consulta con tesoreria antes de enviar un check u otro metodo.</p>
+            </article>
+          </div>
+          <button type="button" class="button primary" data-open-request="contribution">Reportar contribucion enviada</button>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/forms.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ChurchFlow Admin</title>
+  <meta name="description" content="Panel administrativo ChurchFlow Admin para una iglesia local.">
+  <link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body>
+  <section id="loginView" class="login-view">
+    <form id="loginForm" class="login-card">
+      <img src="assets/img/placeholder-logo.png" alt="ChurchFlow Admin">
+      <h1>ChurchFlow Admin</h1>
+      <p>Acceso administrativo seguro</p>
+      <label>Usuario o email<input name="username" autocomplete="username" required></label>
+      <label>Contrasena<input name="password" type="password" autocomplete="current-password" required></label>
+      <button type="submit" class="button primary">Entrar</button>
+      <p id="loginStatus" class="status" role="status"></p>
+    </form>
+  </section>
+
+  <section id="adminShell" class="admin-shell hidden">
+    <aside class="sidebar">
+      <div class="admin-brand">
+        <img id="adminLogo" src="assets/img/placeholder-logo.png" alt="Logo">
+        <div>
+          <strong id="adminChurchName">ChurchFlow Admin</strong>
+          <span id="adminUserLabel">Sesion activa</span>
+        </div>
+      </div>
+      <nav class="admin-nav" id="adminNav">
+        <button type="button" data-module="dashboard">Dashboard</button>
+        <button type="button" data-module="records">Registro local</button>
+        <button type="button" data-module="requests">Formularios / Solicitudes</button>
+        <button type="button" data-module="finance">Finanzas</button>
+        <button type="button" data-module="reports">Reportes</button>
+        <button type="button" data-module="files">Archivos / Drive</button>
+        <button type="button" data-module="events">Eventos</button>
+        <button type="button" data-module="ministries">Ministerios</button>
+        <button type="button" data-module="settings">Configuracion</button>
+        <button type="button" data-module="users">Usuarios y roles</button>
+        <button type="button" data-module="audit">Auditoria</button>
+      </nav>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar">
+        <button type="button" class="icon-button" id="mobileMenuButton" aria-label="Abrir navegacion">Menu</button>
+        <div>
+          <h1 id="moduleTitle">Dashboard</h1>
+          <p id="moduleSubtitle">Resumen operativo</p>
+        </div>
+        <div class="topbar-actions">
+          <button type="button" class="button" id="refreshButton">Actualizar</button>
+          <button type="button" class="button danger" id="logoutButton">Salir</button>
+        </div>
+      </header>
+
+      <div id="alertArea" class="alert-area" aria-live="polite"></div>
+      <section id="moduleContent" class="module-content" aria-live="polite"></section>
+    </main>
+  </section>
+
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/records.js"></script>
+  <script src="assets/js/finance.js"></script>
+  <script src="assets/js/reports.js"></script>
+  <script src="assets/js/files.js"></script>
+  <script src="assets/js/settings.js"></script>
+  <script src="assets/js/events.js"></script>
+  <script src="assets/js/ministries.js"></script>
+  <script src="assets/js/admin.js"></script>
+</body>
+</html>
