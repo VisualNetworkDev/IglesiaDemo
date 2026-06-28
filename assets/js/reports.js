@@ -14,7 +14,7 @@
           '<div class="form-grid">' +
             '<label>Registro ID para historial financiero<input id="reportRecordId" placeholder="REG-000001"></label>' +
             '<label>Email opcional para resumen anual<input id="statementEmail" type="email"></label>' +
-            '<label>Ano<input id="reportYear" type="number" min="2020" max="2100"></label>' +
+            '<label>Año<input id="reportYear" type="number" min="2020" max="2100"></label>' +
           '</div>' +
           '<div class="form-actions">' +
             '<button type="button" class="button" data-report="recordPdf">Generar registro de la iglesia local</button>' +

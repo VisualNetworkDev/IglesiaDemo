@@ -74,7 +74,7 @@
             stat("Registros activos", data.activeRecords || 0) +
             stat("Proximos eventos", data.upcomingEvents || 0) +
             stat("Alertas", (data.alerts || []).length) +
-            stat("Ano activo", data.activeYear || "") +
+            stat("Año activo", data.activeYear || "") +
           '</div>' +
           '<section class="panel"><h2>Accesos rapidos</h2><div class="form-actions">' +
             quick("requests", "Ver solicitudes") +
@@ -180,11 +180,13 @@
   }
 
   function showLogin() {
+    document.getElementById("adminLoadingView").classList.add("hidden");
     document.getElementById("loginView").classList.remove("hidden");
     document.getElementById("adminShell").classList.add("hidden");
   }
 
   function showAdmin() {
+    document.getElementById("adminLoadingView").classList.add("hidden");
     document.getElementById("loginView").classList.add("hidden");
     document.getElementById("adminShell").classList.remove("hidden");
     const session = app.state.session || {};

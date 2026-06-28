@@ -27,6 +27,67 @@ textarea { font: inherit; }
 
 .hidden { display: none !important; }
 
+.admin-loading-view {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    linear-gradient(120deg, rgba(23,32,38,.94), rgba(47,111,115,.80)),
+    url("https://images.unsplash.com/photo-1490127252417-7c393f993ee4?auto=format&fit=crop&w=1600&q=80") center/cover;
+}
+
+.loading-card {
+  width: min(460px, 100%);
+  display: grid;
+  gap: 16px;
+  padding: 28px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 24px 80px rgba(0,0,0,.28);
+}
+
+.loading-card img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+
+.loading-card h1 {
+  margin: 0;
+  font-size: 30px;
+}
+
+.loading-card p {
+  margin: 4px 0 0;
+  color: var(--muted);
+}
+
+.loading-bar {
+  position: relative;
+  overflow: hidden;
+  display: block;
+  height: 7px;
+  border-radius: 999px;
+  background: #e4ecef;
+}
+
+.loading-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 44%;
+  border-radius: inherit;
+  background: var(--accent);
+  animation: loadingSlide 1.25s ease-in-out infinite;
+}
+
+@keyframes loadingSlide {
+  0% { transform: translateX(-120%); }
+  50% { transform: translateX(90%); }
+  100% { transform: translateX(260%); }
+}
+
 .login-view {
   min-height: 100vh;
   display: grid;
@@ -199,6 +260,53 @@ textarea { resize: vertical; }
 .panel h3,
 .stat-card h3 { margin: 0 0 12px; }
 
+.subpanel {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfdfd;
+}
+
+.schedule-editor {
+  display: grid;
+  gap: 10px;
+}
+
+.schedule-row {
+  display: grid;
+  grid-template-columns: minmax(140px, .8fr) repeat(2, minmax(180px, 1fr));
+  align-items: end;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.schedule-day {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+}
+
+.schedule-day input {
+  width: auto;
+  min-height: 0;
+}
+
+.time-parts {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+}
+
+.muted-copy {
+  color: var(--muted);
+  margin: 0 0 12px;
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -320,7 +428,8 @@ td .row-actions {
   .topbar-actions { width: 100%; justify-content: stretch; }
   .topbar-actions .button { flex: 1; }
   .stats-grid,
-  .form-grid { grid-template-columns: 1fr; }
+  .form-grid,
+  .schedule-row { grid-template-columns: 1fr; }
   .toolbar { display: grid; }
   .toolbar label { min-width: 0; }
 }

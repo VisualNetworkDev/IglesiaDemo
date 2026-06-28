@@ -8,7 +8,18 @@
   <link rel="stylesheet" href="assets/css/admin.css">
 </head>
 <body>
-  <section id="loginView" class="login-view">
+  <section id="adminLoadingView" class="admin-loading-view">
+    <div class="loading-card">
+      <img src="assets/img/placeholder-logo.png" alt="">
+      <div>
+        <h1>Cargando panel</h1>
+        <p>Preparando datos, permisos y modulos administrativos.</p>
+      </div>
+      <span class="loading-bar" aria-hidden="true"></span>
+    </div>
+  </section>
+
+  <section id="loginView" class="login-view hidden">
     <form id="loginForm" class="login-card">
       <img src="assets/img/placeholder-logo.png" alt="ChurchFlow Admin">
       <h1>ChurchFlow Admin</h1>

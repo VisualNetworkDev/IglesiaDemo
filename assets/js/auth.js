@@ -33,10 +33,10 @@
     return app.state.session && app.state.session.token;
   };
 
-  app.api = function (action, payload) {
+  app.api = function (action, payload, options) {
     const body = Object.assign({}, payload || {});
     if (app.token()) body.token = app.token();
-    return ChurchFlowAPI.request(action, body);
+    return ChurchFlowAPI.request(action, body, options);
   };
 
   app.login = function (username, password) {

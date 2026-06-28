@@ -146,7 +146,7 @@ img {
   min-height: 0;
   position: relative;
   width: 100%;
-  max-width: 1120px;
+  max-width: 1440px;
   margin: 0 auto;
   padding: 14px;
   overflow: hidden;
@@ -160,6 +160,12 @@ img {
 
 .app-screen.active {
   display: block;
+  animation: screenIn .28s ease both;
+}
+
+@keyframes screenIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .screen-scroll,
@@ -189,6 +195,12 @@ img {
     linear-gradient(180deg, rgba(23, 32, 39, .12), rgba(23, 32, 39, .84)),
     url("https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=1500&q=80") center/cover;
   box-shadow: var(--shadow);
+  animation: heroReveal .7s ease both;
+}
+
+@keyframes heroReveal {
+  from { opacity: 0; transform: scale(.985); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .eyebrow {
@@ -247,6 +259,7 @@ h3 {
   text-align: left;
   text-decoration: none;
   backdrop-filter: blur(10px);
+  transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
 }
 
 .action-card.primary {
@@ -262,6 +275,11 @@ h3 {
 
 .action-card strong {
   line-height: 1.2;
+}
+
+.action-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px rgba(23, 32, 39, .18);
 }
 
 .summary-panel,
@@ -326,6 +344,21 @@ h3 {
   border-radius: 8px;
   padding: 15px;
   background: #fbfdfd;
+  animation: cardIn .34s ease both;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card:hover,
+.event-card:hover,
+.giving-list article:hover {
+  transform: translateY(-3px);
+  border-color: #bfd1d4;
+  box-shadow: 0 16px 36px rgba(23, 32, 39, .10);
 }
 
 .info-list h3,
@@ -361,6 +394,21 @@ h3 {
   color: var(--accent-strong);
   font-size: 13px;
   font-weight: 900;
+}
+
+.giving-list article {
+  display: grid;
+  gap: 10px;
+}
+
+.qr-image {
+  width: min(220px, 100%);
+  aspect-ratio: 1;
+  object-fit: contain;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+  background: #fff;
 }
 
 .button {

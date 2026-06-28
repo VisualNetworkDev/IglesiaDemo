@@ -5,7 +5,7 @@
 
   app.registerModule("events", {
     title: "Eventos",
-    subtitle: "Eventos activos para la pagina publica",
+    subtitle: "Agenda publica con fotos desde Drive",
     render: function () {
       app.requireAccess("events", "read");
       app.setContent(
@@ -13,12 +13,13 @@
           '<h2>Crear o editar evento</h2>' +
           '<form id="eventForm">' +
             '<input type="hidden" name="id">' +
+            '<input type="hidden" name="photoUrl">' +
             '<div class="form-grid">' +
               field("title", "Titulo", "text", true) +
               field("date", "Fecha", "date", true) +
-              field("time", "Hora", "text", false) +
+              timeField("time", "Hora") +
               field("location", "Lugar", "text", false) +
-              field("photoUrl", "Foto URL", "url", false) +
+              '<label>Foto del evento<input id="eventPhotoFile" type="file" accept="image/*"></label>' +
               '<label>Visible<select name="active"><option value="true">Si</option><option value="false">No</option></select></label>' +
               '<label class="full">Descripcion<textarea name="description" rows="3"></textarea></label>' +
             '</div>' +
@@ -47,31 +48,35 @@
         ["active", "Visible", app.badge]
       ], function (_, index) {
         return '<button type="button" class="button" data-edit="' + index + '">Editar</button>' +
-          '<button type="button" class="button warning" data-delete="' + index + '">Desactivar</button>';
+          '<button type="button" class="button warning" data-disable="' + index + '">Desactivar</button>' +
+          '<button type="button" class="button danger" data-remove="' + index + '">Borrar</button>';
       });
     }).catch(app.showError);
   }
 
   function saveEvent(event) {
     event.preventDefault();
-    const payload = ChurchFlowAPI.formToPayload(event.currentTarget);
-    const action = payload.id ? "updateEvent" : "createEvent";
+    const form = event.currentTarget;
     const status = document.getElementById("eventStatus");
-    ChurchFlowAPI.setStatus(status, "Guardando...", "");
-    app.api(action, { event: payload })
-      .then(function (result) {
-        ChurchFlowAPI.setStatus(status, result.message || "Evento guardado.", "success");
-        event.currentTarget.reset();
-        loadEvents();
-      })
-      .catch(function (error) { ChurchFlowAPI.setStatus(status, error.message, "error"); });
+    const file = document.getElementById("eventPhotoFile").files[0];
+    ChurchFlowAPI.setStatus(status, file ? "Optimizando foto..." : "Guardando...", "");
+    uploadPhotoIfNeeded(file, "Foto de evento").then(function (upload) {
+      if (upload) form.elements.photoUrl.value = upload.fileUrl;
+      const payload = ChurchFlowAPI.formToPayload(form);
+      const action = payload.id ? "updateEvent" : "createEvent";
+      return app.api(action, { event: payload });
+    }).then(function (result) {
+      ChurchFlowAPI.setStatus(status, result.message || "Evento guardado.", "success");
+      form.reset();
+      loadEvents();
+    }).catch(function (error) { ChurchFlowAPI.setStatus(status, error.message, "error"); });
   }
 
   function eventAction(event) {
     const button = event.target.closest("button");
     if (!button) return;
     const rows = app.state.eventsRows || [];
-    const index = Number(button.dataset.edit || button.dataset.delete);
+    const index = Number(button.dataset.edit || button.dataset.disable || button.dataset.remove);
     const row = rows[index];
     if (!row) return;
     if (button.dataset.edit !== undefined) {
@@ -79,15 +84,43 @@
       Object.keys(row).forEach(function (key) { if (form.elements[key]) form.elements[key].value = row[key] || ""; });
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-    if (button.dataset.delete !== undefined) {
+    if (button.dataset.disable !== undefined) {
       app.api("deleteEvent", { id: row.id }).then(function (result) {
         app.showSuccess(result.message || "Evento desactivado.");
         loadEvents();
       }).catch(app.showError);
     }
+    if (button.dataset.remove !== undefined) {
+      if (!confirm("Borrar este evento?")) return;
+      app.api("removeEvent", { id: row.id }).then(function (result) {
+        app.showSuccess(result.message || "Evento borrado.");
+        loadEvents();
+      }).catch(app.showError);
+    }
+  }
+
+  function uploadPhotoIfNeeded(file, title) {
+    if (!file) return Promise.resolve(null);
+    return ChurchFlowAPI.prepareUploadFile(file, "Fotos").then(function (prepared) {
+      return ChurchFlowAPI.fileToBase64(prepared).then(function (base64) {
+        return app.api("uploadDriveFile", {
+          fileType: "Fotos",
+          title: title,
+          description: "Imagen optimizada desde el admin",
+          fileName: prepared.name,
+          mimeType: prepared.type || "image/jpeg",
+          publicAccess: true,
+          base64: base64
+        }, { transport: "iframe", timeoutMs: 120000 }).then(function (result) { return result.data; });
+      });
+    });
   }
 
   function field(name, label, type, required) {
     return '<label>' + label + '<input name="' + name + '" type="' + type + '"' + (required ? " required" : "") + '></label>';
+  }
+
+  function timeField(name, label) {
+    return '<label>' + label + '<input name="' + name + '" type="text" placeholder="10:00 AM" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$"></label>';
   }
 })(window);

@@ -32,6 +32,9 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyPw8KqHcbsu2iW9nNy9lS0
     if (config.transport === "fetch") {
       return fetchRequest(action, payload || {}, config).then(normalizeResponse);
     }
+    if (config.transport === "iframe") {
+      return iframePostRequest(action, payload || {}, config).then(normalizeResponse);
+    }
     return jsonpRequest(action, payload || {}, config).then(normalizeResponse);
   }
 
@@ -95,6 +98,64 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyPw8KqHcbsu2iW9nNy9lS0
     });
   }
 
+  function iframePostRequest(action, payload, config) {
+    return new Promise(function (resolve, reject) {
+      let url;
+      try {
+        url = new URL(API_URL);
+      } catch (error) {
+        reject(new Error("API_URL no es una URL valida."));
+        return;
+      }
+
+      const callbackName = "__churchFlowIframe_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+      const iframeName = callbackName + "_frame";
+      const iframe = document.createElement("iframe");
+      const form = document.createElement("form");
+      const timer = setTimeout(function () {
+        cleanup();
+        reject(new Error("La subida no respondio dentro del tiempo esperado."));
+      }, config.timeoutMs || 120000);
+
+      function cleanup() {
+        clearTimeout(timer);
+        window.removeEventListener("message", onMessage);
+        if (form.parentNode) form.parentNode.removeChild(form);
+        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+      }
+
+      function addField(name, value) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      }
+
+      function onMessage(event) {
+        const data = event.data || {};
+        if (!data || data.churchFlowCallback !== callbackName) return;
+        cleanup();
+        resolve(data.response);
+      }
+
+      iframe.name = iframeName;
+      iframe.style.display = "none";
+      form.method = "POST";
+      form.action = url.toString();
+      form.target = iframeName;
+      form.style.display = "none";
+      addField("action", action);
+      addField("payload", JSON.stringify(payload || {}));
+      addField("iframeCallback", callbackName);
+
+      window.addEventListener("message", onMessage);
+      document.body.appendChild(iframe);
+      document.body.appendChild(form);
+      form.submit();
+    });
+  }
+
   function formToPayload(form) {
     const data = new FormData(form);
     const payload = {};
@@ -135,12 +196,69 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyPw8KqHcbsu2iW9nNy9lS0
     });
   }
 
+  function optimizeImageFile(file, options) {
+    const config = Object.assign({ maxWidth: 1800, maxHeight: 1800, quality: 0.86 }, options || {});
+    if (!file || !/^image\//i.test(file.type || "")) return Promise.resolve(file);
+    return new Promise(function (resolve, reject) {
+      const image = new Image();
+      const objectUrl = URL.createObjectURL(file);
+      image.onload = function () {
+        try {
+          let width = image.naturalWidth || image.width;
+          let height = image.naturalHeight || image.height;
+          const scale = Math.min(1, config.maxWidth / width, config.maxHeight / height);
+          width = Math.max(1, Math.round(width * scale));
+          height = Math.max(1, Math.round(height * scale));
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d", { alpha: false });
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
+          ctx.drawImage(image, 0, 0, width, height);
+          canvas.toBlob(function (blob) {
+            URL.revokeObjectURL(objectUrl);
+            if (!blob) {
+              reject(new Error("No se pudo optimizar la imagen."));
+              return;
+            }
+            const baseName = file.name.replace(/\.[^.]+$/, "");
+            const optimized = new File([blob], baseName + ".jpg", { type: "image/jpeg", lastModified: Date.now() });
+            optimized.originalSize = file.size;
+            resolve(optimized.size < file.size ? optimized : file);
+          }, "image/jpeg", config.quality);
+        } catch (error) {
+          URL.revokeObjectURL(objectUrl);
+          reject(error);
+        }
+      };
+      image.onerror = function () {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error("No se pudo leer la imagen seleccionada."));
+      };
+      image.src = objectUrl;
+    });
+  }
+
+  function prepareUploadFile(file, fileType) {
+    if (!file) return Promise.reject(new Error("Selecciona un archivo."));
+    const isImage = /^image\//i.test(file.type || "");
+    const isVideo = /^video\//i.test(file.type || "");
+    if (isImage) return optimizeImageFile(file);
+    if (isVideo && file.size > 25 * 1024 * 1024) {
+      return Promise.reject(new Error("El video es demasiado grande para subirlo desde esta app. Usa un video menor de 25 MB o comprimelo desde el telefono antes de subirlo."));
+    }
+    return Promise.resolve(file);
+  }
+
   window.ChurchFlowAPI = {
     request: request,
     formToPayload: formToPayload,
     setStatus: setStatus,
     downloadText: downloadText,
     fileToBase64: fileToBase64,
+    optimizeImageFile: optimizeImageFile,
+    prepareUploadFile: prepareUploadFile,
     isConfigured: isConfigured
   };
 })(window);

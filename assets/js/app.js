@@ -5,25 +5,33 @@
     activeView: "home",
     publicConfig: {
       churchName: "Iglesia Nueva Esperanza",
-      logoUrl: "assets/img/placeholder-logo.png",
       liveUrl: "",
       liveIsActive: false,
-      mission: "Guiar a las personas a conocer a Cristo, fortalecer familias y servir con compasion.",
-      vision: "Ser una iglesia saludable, cercana y comprometida con transformar vidas por medio del evangelio.",
-      history: "Nacimos como una comunidad de fe local con el deseo de abrir puertas, escuchar necesidades y caminar junto a cada persona.",
-      pastorName: "Informacion pastoral disponible proximamente.",
-      serviceTimes: "Domingo 10:00 AM · Miercoles 7:30 PM",
+      mission: "Existimos para guiar a personas y familias a conocer a Cristo, crecer en una fe viva y servir con compasion a nuestra ciudad.",
+      vision: "Ser una iglesia cercana, saludable y activa, donde cada persona encuentre cuidado espiritual, comunidad y oportunidades reales para servir.",
+      history: "Nacimos como una comunidad local de fe con puertas abiertas para adorar, escuchar, acompañar y responder a las necesidades de la ciudad.",
+      pastorName: "El equipo pastoral acompaña a la iglesia con enseñanza biblica, cuidado espiritual y seguimiento cercano a las familias.",
+      serviceTimes: "Domingo 10:00 AM - 12:00 PM; Miercoles 7:30 PM - 9:00 PM",
       address: "Direccion por configurar",
       phone: "",
       email: "",
       cashAppInstructions: "Consulta las instrucciones vigentes con el equipo de tesoreria.",
       zelleInstructions: "Consulta las instrucciones vigentes con el equipo de tesoreria.",
+      cashAppQrUrl: "",
+      zelleQrUrl: "",
       cashInstructions: "Entrega directa al equipo autorizado y solicita confirmacion.",
       checkInstructions: "Consulta con tesoreria antes de enviar un check u otro metodo."
     },
     ministries: [],
     events: []
   };
+
+  const fallbackPhotos = [
+    "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=1200&q=80",
+    "https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=1200&q=80",
+    "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=1200&q=80",
+    "https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?auto=format&fit=crop&w=1200&q=80"
+  ];
 
   document.addEventListener("DOMContentLoaded", function () {
     initAppNavigation();
@@ -113,11 +121,12 @@
     setText("serviceTimes", state.publicConfig.serviceTimes);
     setText("cashAppInstructions", state.publicConfig.cashAppInstructions);
     setText("zelleInstructions", state.publicConfig.zelleInstructions);
+    setQrImage("cashAppQrImage", state.publicConfig.cashAppQrUrl);
+    setQrImage("zelleQrImage", state.publicConfig.zelleQrUrl);
     setText("cashInstructions", state.publicConfig.cashInstructions);
     setText("checkInstructions", state.publicConfig.checkInstructions);
     setText("footerAddress", state.publicConfig.address);
     setText("footerContact", [state.publicConfig.email, state.publicConfig.phone].filter(Boolean).join(" · ") || "Email y telefono por configurar");
-    setImage("churchLogo", state.publicConfig.logoUrl);
     renderLiveState();
     renderMinistries();
     renderEvents();
@@ -144,9 +153,9 @@
       grid.innerHTML = '<div class="empty-state">Los ministerios apareceran aqui cuando esten disponibles.</div>';
       return;
     }
-    grid.innerHTML = ministries.map(function (item) {
+    grid.innerHTML = ministries.map(function (item, index) {
       return '<article class="card">' +
-        '<img src="' + escapeAttr(item.photoUrl || "assets/img/placeholder-logo.png") + '" alt="">' +
+        '<img src="' + escapeAttr(item.photoUrl || fallbackPhotos[index % fallbackPhotos.length]) + '" alt="">' +
         '<h3>' + escapeHtml(item.name || "Ministerio") + '</h3>' +
         '<p>' + escapeHtml(item.description || "") + '</p>' +
         '</article>';
@@ -161,9 +170,9 @@
       grid.innerHTML = '<div class="empty-state">Los eventos apareceran aqui cuando esten disponibles.</div>';
       return;
     }
-    grid.innerHTML = events.map(function (item) {
+    grid.innerHTML = events.map(function (item, index) {
       return '<article class="event-card">' +
-        (item.photoUrl ? '<img src="' + escapeAttr(item.photoUrl) + '" alt="">' : "") +
+        '<img src="' + escapeAttr(item.photoUrl || fallbackPhotos[index % fallbackPhotos.length]) + '" alt="">' +
         '<h3>' + escapeHtml(item.title || "Evento") + '</h3>' +
         '<div class="event-meta"><span>' + escapeHtml(item.date || "") + '</span><span>' + escapeHtml(item.time || "") + '</span><span>' + escapeHtml(item.location || "") + '</span></div>' +
         '<p>' + escapeHtml(item.description || "") + '</p>' +
@@ -176,9 +185,16 @@
     if (element && value !== undefined && value !== null) element.textContent = value;
   }
 
-  function setImage(id, value) {
+  function setQrImage(id, value) {
     const element = document.getElementById(id);
-    if (element && value) element.src = value;
+    if (!element) return;
+    if (!value) {
+      element.hidden = true;
+      element.removeAttribute("src");
+      return;
+    }
+    element.src = value;
+    element.hidden = false;
   }
 
   function escapeHtml(value) {
