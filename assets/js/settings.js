@@ -31,8 +31,9 @@
               field("phone", "Telefono", "text") +
               field("email", "Email publico", "email") +
               field("adminEmail", "Correo de notificaciones", "email") +
-              field("liveUrl", "Enlace directo de transmisión", "url") +
-              '<label>Estado actual de transmisión<select name="liveIsActive"><option value="false">No activa</option><option value="true">Ahora en vivo</option></select></label>' +
+              field("facebookUrl", "Enlace de Facebook de la iglesia", "url") +
+              field("liveUrl", "Enlace directo si hay transmision especial", "url") +
+              '<label>Estado actual de transmision especial<select name="liveIsActive"><option value="false">No activa</option><option value="true">Ahora en vivo</option></select></label>' +
               field("activeYear", "Año activo", "number") +
               field("receiptLegalText", "Texto legal de recibos", "text") +
               '<label>Mostrar ministerios<select name="showMinistries"><option value="true">Si</option><option value="false">No</option></select></label>' +
@@ -51,6 +52,7 @@
               '<h3>Diezmos y donaciones</h3>' +
               '<div class="form-grid">' +
                 '<label class="full">Instrucciones Cash App<textarea name="cashAppInstructions" rows="3"></textarea></label>' +
+                field("cashAppLink", "Enlace directo de Cash App", "url") +
                 '<label>Foto del QR Cash App (opcional)<input id="cashAppQrFile" type="file" accept="image/*"></label>' +
                 '<div class="file-current"><strong>Cash App QR</strong><span id="cashAppQrPreview">Sin foto guardada</span></div>' +
                 '<label class="full">Instrucciones Zelle<textarea name="zelleInstructions" rows="3"></textarea></label>' +

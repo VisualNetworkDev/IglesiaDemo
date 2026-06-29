@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Iglesia Nueva Esperanza</title>
   <meta name="description" content="Aplicación pública de una iglesia local con solicitudes, eventos, ministerios, contacto y contribuciones manuales.">
+  <link rel="preconnect" href="https://script.google.com">
+  <link rel="preconnect" href="https://images.unsplash.com">
   <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body class="church-app">
@@ -15,6 +17,7 @@
         <span id="churchName">Iglesia Nueva Esperanza</span>
       </a>
       <button type="button" class="live-button live-only" data-open-live hidden>Ahora En Vivo</button>
+      <button type="button" class="facebook-button facebook-only" data-open-facebook hidden>Facebook</button>
     </div>
     <nav class="app-tabs" aria-label="Navegacion principal">
       <button type="button" class="active" data-view-link="home">Inicio</button>
@@ -49,6 +52,10 @@
               <button type="button" class="action-card live-only" data-open-live hidden>
                 <span>Transmisión</span>
                 <strong>Ahora En Vivo</strong>
+              </button>
+              <button type="button" class="action-card facebook-only" data-open-facebook hidden>
+                <span>Facebook</span>
+                <strong>Ver pagina oficial</strong>
               </button>
             </div>
           </div>
@@ -126,6 +133,12 @@
           <h2>Ahora En Vivo</h2>
           <p>La transmisión está disponible en el enlace oficial de la iglesia.</p>
           <button type="button" class="button primary" data-open-live>Abrir transmisión</button>
+        </section>
+        <section class="panel facebook-panel facebook-only" hidden>
+          <p class="eyebrow">Facebook</p>
+          <h2>Pagina oficial</h2>
+          <p>Abre la pagina de Facebook de la iglesia para ver publicaciones y transmisiones.</p>
+          <button type="button" class="button primary" data-open-facebook>Abrir Facebook</button>
         </section>
         <section class="panel wide-panel">
           <p class="eyebrow">Agenda</p>
@@ -315,6 +328,7 @@
           <article>
             <h3>Cash App</h3>
             <p id="cashAppInstructions">Consulta las instrucciones vigentes con el equipo de tesoreria.</p>
+            <a id="cashAppLinkButton" class="button primary method-link" target="_blank" rel="noopener" hidden>Abrir Cash App</a>
             <img id="cashAppQrImage" class="qr-image" alt="Foto del QR de Cash App" hidden>
           </article>
           <article>

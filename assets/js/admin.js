@@ -8,7 +8,7 @@
     records: ["Registro de Miembros", "Personas, hogares y estado espiritual"],
     requests: ["Formularios / Solicitudes", "Seguimiento pastoral y administrativo"],
     finance: ["Finanzas", "Contribuciones, ayudas y verificaciones"],
-    reports: ["Reportes", "PDF y CSV bajo demanda"],
+    reports: ["Reportes", "PDF bajo demanda"],
     files: ["Archivos / Drive", "Gestion de archivos auditada"],
     events: ["Eventos", "Agenda publica"],
     ministries: ["Ministerios", "Areas de servicio"],

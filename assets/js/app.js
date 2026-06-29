@@ -15,7 +15,9 @@
       address: "Dirección por configurar",
       phone: "",
       email: "",
+      facebookUrl: "",
       cashAppInstructions: "Consulta las instrucciones vigentes con el equipo de tesoreria.",
+      cashAppLink: "",
       zelleInstructions: "Consulta las instrucciones vigentes con el equipo de tesoreria.",
       cashAppQrUrl: "",
       zelleQrUrl: "",
@@ -39,6 +41,7 @@
     initMinistrySliderControls();
     initDetailModal();
     bindLiveButtons();
+    bindFacebookButtons();
     ChurchFlowForms.init();
     loadPublicConfig();
   });
@@ -156,7 +159,16 @@
     document.querySelectorAll("[data-open-live]").forEach(function (button) {
       button.addEventListener("click", function () {
         if (!isLiveAvailable()) return;
-        window.open(state.publicConfig.liveUrl, "_blank", "noopener");
+        window.open(state.publicConfig.liveUrl || state.publicConfig.facebookUrl, "_blank", "noopener");
+      });
+    });
+  }
+
+  function bindFacebookButtons() {
+    document.querySelectorAll("[data-open-facebook]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        if (!state.publicConfig.facebookUrl) return;
+        window.open(state.publicConfig.facebookUrl, "_blank", "noopener");
       });
     });
   }
@@ -188,6 +200,7 @@
     setText("pastorText", state.publicConfig.pastorName);
     setText("serviceTimes", state.publicConfig.serviceTimes);
     setText("cashAppInstructions", state.publicConfig.cashAppInstructions);
+    setLink("cashAppLinkButton", state.publicConfig.cashAppLink);
     setText("zelleInstructions", state.publicConfig.zelleInstructions);
     setQrImage("cashAppQrImage", state.publicConfig.cashAppQrUrl);
     setQrImage("zelleQrImage", state.publicConfig.zelleQrUrl);
@@ -205,12 +218,15 @@
     document.querySelectorAll(".live-only").forEach(function (element) {
       element.hidden = !active;
     });
+    document.querySelectorAll(".facebook-only").forEach(function (element) {
+      element.hidden = !state.publicConfig.facebookUrl || active;
+    });
   }
 
   function isLiveAvailable() {
     const activeValue = state.publicConfig.liveIsActive;
     const active = activeValue === true || activeValue === "true" || activeValue === "TRUE";
-    return Boolean(active && state.publicConfig.liveUrl);
+    return Boolean(active && (state.publicConfig.liveUrl || state.publicConfig.facebookUrl));
   }
 
   function renderMinistries() {
@@ -226,7 +242,7 @@
     }
     grid.innerHTML = ministries.map(function (item, index) {
       return '<article class="ministry-slide" role="button" tabindex="0" data-ministry-detail="' + index + '">' +
-        '<img src="' + escapeAttr(item.photoUrl || fallbackPhotos[index % fallbackPhotos.length]) + '" alt="">' +
+        '<img loading="lazy" src="' + escapeAttr(item.photoUrl || fallbackPhotos[index % fallbackPhotos.length]) + '" alt="">' +
         '<div><h3>' + escapeHtml(item.name || "Ministerio") + '</h3>' +
         '<p>' + escapeHtml(item.description || "") + '</p></div>' +
         '</article>';
@@ -271,7 +287,7 @@
     }
     grid.innerHTML = events.map(function (item, index) {
       return '<article class="event-card" role="button" tabindex="0" data-event-detail="' + index + '">' +
-        '<img src="' + escapeAttr(item.photoUrl || fallbackPhotos[index % fallbackPhotos.length]) + '" alt="">' +
+        '<img loading="lazy" src="' + escapeAttr(item.photoUrl || fallbackPhotos[index % fallbackPhotos.length]) + '" alt="">' +
         '<h3>' + escapeHtml(item.title || "Evento") + '</h3>' +
         '<div class="event-meta"><span>' + escapeHtml(item.date || "") + '</span><span>' + escapeHtml(item.time || "") + '</span><span>' + escapeHtml(item.location || "") + '</span></div>' +
         '<p>' + escapeHtml(item.description || "") + '</p>' +
@@ -317,7 +333,7 @@
     }).join("");
     document.getElementById("detailMedia").innerHTML = '<img src="' + escapeAttr(photos[0]) + '" alt="">';
     document.getElementById("detailGallery").innerHTML = photos.map(function (url) {
-      return '<img src="' + escapeAttr(url) + '" alt="">';
+      return '<img loading="lazy" src="' + escapeAttr(url) + '" alt="">';
     }).join("");
     modal.classList.remove("hidden");
     modal.setAttribute("aria-hidden", "false");
@@ -378,6 +394,18 @@
       return;
     }
     element.src = value;
+    element.hidden = false;
+  }
+
+  function setLink(id, value) {
+    const element = document.getElementById(id);
+    if (!element) return;
+    if (!value) {
+      element.hidden = true;
+      element.removeAttribute("href");
+      return;
+    }
+    element.href = value;
     element.hidden = false;
   }
 

@@ -5,7 +5,7 @@
 
   app.registerModule("reports", {
     title: "Reportes",
-    subtitle: "PDF y CSV bajo demanda",
+    subtitle: "PDF bajo demanda",
     render: function () {
       app.requireAccess("reports", "read");
       app.setContent(
@@ -18,10 +18,9 @@
           '</div>' +
           '<div class="form-actions">' +
             '<button type="button" class="button" data-report="recordPdf">Generar registro de la iglesia local</button>' +
-            '<button type="button" class="button" data-report="recordCsv">Generar CSV del registro</button>' +
             '<button type="button" class="button" data-report="financialPdf">Generar historial financiero de una persona</button>' +
             '<button type="button" class="button" data-report="yearStatement">Generar resumen anual</button>' +
-            '<button type="button" class="button" data-report="bulkStatements">Generar recibos anuales por lote</button>' +
+            '<button type="button" class="button" data-report="bulkStatements">Generar recibos anuales por lote (maximo 10 por vez)</button>' +
             '<button type="button" class="button" data-report="retryBulk">Reintentar fallidos</button>' +
             '<button type="button" class="button" data-report="auditPdf">Generar reporte de auditoria</button>' +
           '</div>' +
@@ -46,18 +45,18 @@
     const email = value("statementEmail");
     const status = document.getElementById("reportsStatus");
     ChurchFlowAPI.setStatus(status, "Generando...", "");
+    const cleanRecordId = normalizeRecordId(recordId);
     const actions = {
       recordPdf: ["generateRecordReport", { year: year }],
-      recordCsv: ["exportRecords", {}],
-      financialPdf: ["generateRecordFinancialReport", { recordId: recordId, year: year }],
-      yearStatement: ["generateYearEndStatement", { recordId: recordId, year: year, email: email }],
+      financialPdf: ["generateRecordFinancialReport", { recordId: cleanRecordId, year: year }],
+      yearStatement: ["generateYearEndStatement", { recordId: cleanRecordId, year: year, email: email }],
       bulkStatements: ["generateBulkYearEndStatements", { year: year, retryFailed: false, batchSize: 10 }],
       retryBulk: ["generateBulkYearEndStatements", { year: year, retryFailed: true, batchSize: 10 }],
       auditPdf: ["generateAuditReport", { year: year }]
     };
     const request = actions[type];
     if (!request) return;
-    if ((type === "financialPdf" || type === "yearStatement") && !recordId) {
+    if ((type === "financialPdf" || type === "yearStatement") && !cleanRecordId) {
       ChurchFlowAPI.setStatus(status, "Indica un Registro ID.", "error");
       return;
     }
@@ -73,6 +72,8 @@
     const output = document.getElementById("reportsOutput");
     if (data.csv) {
       ChurchFlowAPI.downloadText(data.filename || "reporte.csv", data.csv, "text/csv;charset=utf-8");
+      output.innerHTML = '<div class="empty">El archivo CSV se descargo correctamente.</div>';
+      return;
     }
     if (data.fileUrl) {
       output.innerHTML = '<div class="panel"><p>Archivo generado:</p><a class="button primary" target="_blank" rel="noopener" href="' + app.escapeAttr(data.fileUrl) + '">Abrir archivo</a></div>';
@@ -83,6 +84,12 @@
       return;
     }
     output.innerHTML = '<pre>' + app.escapeHtml(JSON.stringify(data, null, 2)) + '</pre>';
+  }
+
+  function normalizeRecordId(value) {
+    const text = String(value || "").trim();
+    const match = text.match(/\bREG-\d{6}\b/i);
+    return match ? match[0].toUpperCase() : text;
   }
 
   function value(id) {
