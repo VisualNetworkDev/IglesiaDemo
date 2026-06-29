@@ -20,10 +20,11 @@
             '<button type="button" class="button" data-report="recordPdf">Generar registro de la iglesia local</button>' +
             '<button type="button" class="button" data-report="financialPdf">Generar historial financiero de una persona</button>' +
             '<button type="button" class="button" data-report="yearStatement">Generar resumen anual</button>' +
-            '<button type="button" class="button" data-report="bulkStatements">Generar recibos anuales por lote (maximo 10 por vez)</button>' +
-            '<button type="button" class="button" data-report="retryBulk">Reintentar fallidos</button>' +
+            '<button type="button" class="button" data-report="bulkStatements">Generar recibos anuales pendientes (hasta 10)</button>' +
+            '<button type="button" class="button" data-report="retryBulk">Reintentar recibos anuales fallidos</button>' +
             '<button type="button" class="button" data-report="auditPdf">Generar reporte de auditoria</button>' +
           '</div>' +
+          '<p class="muted-copy">Los recibos anuales pendientes se crean para personas con contribuciones verificadas que aun no tienen recibo del ano seleccionado.</p>' +
           '<p class="status" id="reportsStatus" role="status"></p>' +
           '<div id="reportsOutput"></div>' +
         '</section>'

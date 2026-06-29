@@ -2,6 +2,7 @@
   "use strict";
 
   const app = window.ChurchFlowAdmin;
+  const DASHBOARD_ALERTS_SEEN_KEY = "churchflow_dashboard_alerts_seen_v1";
 
   const moduleMeta = {
     dashboard: ["Dashboard", "Resumen operativo"],
@@ -119,9 +120,10 @@
       const selected = String(item) === String(config.value || "") ? " selected" : "";
       return '<option' + selected + '>' + app.escapeHtml(item) + '</option>';
     }).join("");
+    const noteHtml = config.note ? '<p class="muted-copy modal-note">' + app.escapeHtml(config.note) + '</p>' : "";
     return app.openModal({
       title: config.title || "Seleccionar",
-      body: '<form class="modal-form"><label>' + app.escapeHtml(config.label || "Opcion") + '<select name="value" required>' + optionsHtml + '</select></label></form>',
+      body: '<form class="modal-form"><label>' + app.escapeHtml(config.label || "Opcion") + '<select name="value" required>' + optionsHtml + '</select></label>' + noteHtml + '</form>',
       primaryText: config.primaryText || "Guardar",
       cancelText: config.cancelText || "Cancelar"
     }).then(function (result) {
@@ -177,7 +179,7 @@
       app.api("getDashboardData", {}).then(function (result) {
         const data = result.data || {};
         app.state.dashboardData = data;
-        app.state.dashboardAlerts = normalizeDashboardAlerts(data);
+        app.state.dashboardAlerts = filterDashboardAlerts(normalizeDashboardAlerts(data));
         app.setContent(
           '<div class="stats-grid">' +
             stat("Solicitudes nuevas", data.newRequests || 0) +
@@ -186,7 +188,6 @@
             stat("Por verificar", data.pendingContributions || 0) +
             stat("Miembros activos", data.activeRecords || 0) +
             stat("Proximos eventos", data.upcomingEvents || 0) +
-            stat("Alertas", (data.alerts || []).length) +
             stat("Año activo", data.activeYear || "") +
           '</div>' +
           '<section class="panel"><h2>Accesos rapidos</h2><div class="form-actions">' +
@@ -195,14 +196,7 @@
             quick("records", "Buscar miembro") +
             quick("reports", "Generar reportes") +
           '</div></section>' +
-          '<section class="panel"><h2>Alertas importantes</h2>' +
-            (app.state.dashboardAlerts.length ?
-              '<button type="button" class="button primary" data-open-dashboard-alerts>Ver alertas (' + app.escapeHtml(app.state.dashboardAlerts.length) + ')</button>' +
-              '<ul class="alert-summary">' + app.state.dashboardAlerts.map(function (item, index) {
-                return '<li><button type="button" data-alert-index="' + index + '"><span>' + app.escapeHtml(item.label) + '</span><strong>' + app.escapeHtml(item.count || "") + '</strong></button></li>';
-              }).join("") + '</ul>' :
-              '<div class="empty">No hay alertas pendientes.</div>') +
-          '</section>'
+          '<section class="panel" id="dashboardImportantAlerts">' + renderDashboardAlertsPanel() + '</section>'
         );
       }).catch(app.showError);
     }
@@ -308,8 +302,6 @@
       if (quickButton) setModule(quickButton.dataset.quickModule);
       const alertsButton = event.target.closest("[data-open-dashboard-alerts]");
       if (alertsButton) showDashboardAlerts();
-      const alertSummary = event.target.closest("[data-alert-index]");
-      if (alertSummary) showDashboardAlertItems(Number(alertSummary.dataset.alertIndex));
     });
     document.getElementById("alertArea").addEventListener("click", function (event) {
       if (event.target.closest("[data-dismiss-alert]")) clearAlert();
@@ -423,7 +415,7 @@
         ["createdAt", "Creado"]
       ], function (_, index) {
         return '<button type="button" class="button primary" data-view="' + index + '">Ver</button>' +
-          '<button type="button" class="button" data-status="' + index + '">Estado</button>' +
+          '<button type="button" class="button" data-status="' + index + '">Estado interno</button>' +
           '<button type="button" class="button" data-assign="' + index + '">Asignar</button>' +
           '<button type="button" class="button" data-note="' + index + '">Nota privada</button>';
       });
@@ -448,11 +440,12 @@
     }
     if (button.dataset.status !== undefined) {
       app.selectModal({
-        title: "Cambiar estado",
-        label: "Estado de la solicitud",
+        title: "Cambiar estado interno",
+        label: "Estado interno de la solicitud",
         value: row.status || "Nuevo",
         options: ["Nuevo", "En revision", "Asignado", "Contactado", "Resuelto", "Archivado"],
-        primaryText: "Guardar estado"
+        note: "Este cambio solo organiza el seguimiento del equipo; no envia email automatico al solicitante.",
+        primaryText: "Guardar estado interno"
       }).then(function (status) {
         if (status) updateRequest({ id: row.id, category: row.category, status: status });
       });
@@ -536,10 +529,109 @@
   }
 
   function normalizeDashboardAlerts(data) {
-    if (Array.isArray(data.alertDetails) && data.alertDetails.length) return data.alertDetails;
-    return (data.alerts || []).map(function (label, index) {
-      return { type: "message", label: label, count: index + 1, items: [] };
+    const rawAlerts = Array.isArray(data.alertDetails) && data.alertDetails.length ?
+      data.alertDetails :
+      (data.alerts || []).map(function (label, index) {
+        return { type: "message", label: label, count: index + 1, items: [] };
+      });
+    return rawAlerts.map(function (alert) {
+      const items = Array.isArray(alert.items) ? alert.items : [];
+      return Object.assign({}, alert, {
+        type: alert.type || "message",
+        label: alert.label || "Alerta pendiente.",
+        count: Number(alert.count || items.length || 1),
+        items: items
+      });
     });
+  }
+
+  function filterDashboardAlerts(alerts) {
+    const seen = getSeenDashboardAlerts();
+    return (alerts || []).map(function (alert) {
+      const items = Array.isArray(alert.items) ? alert.items : [];
+      if (items.length) {
+        const visibleItems = items.filter(function (item) {
+          return !seen[dashboardAlertKey(alert, item)];
+        });
+        if (!visibleItems.length) return null;
+        return Object.assign({}, alert, { items: visibleItems, count: visibleItems.length });
+      }
+      return seen[dashboardAlertKey(alert, null)] ? null : alert;
+    }).filter(Boolean);
+  }
+
+  function dashboardAlertStorageKey() {
+    const data = app.state.dashboardData || {};
+    const session = app.state.session || {};
+    const user = session.user || {};
+    return DASHBOARD_ALERTS_SEEN_KEY + ":" + (data.activeYear || new Date().getFullYear()) + ":" + (user.id || user.username || "user");
+  }
+
+  function getSeenDashboardAlerts() {
+    try {
+      return JSON.parse(localStorage.getItem(dashboardAlertStorageKey()) || "{}") || {};
+    } catch (error) {
+      return {};
+    }
+  }
+
+  function saveSeenDashboardAlerts(seen) {
+    try {
+      const keys = Object.keys(seen || {});
+      const limited = {};
+      keys.slice(-500).forEach(function (key) {
+        limited[key] = seen[key];
+      });
+      localStorage.setItem(dashboardAlertStorageKey(), JSON.stringify(limited));
+    } catch (error) {}
+  }
+
+  function dashboardAlertKey(alert, item) {
+    const subject = item ? (item.id || item.title || item.name || item.subtitle || "") : (alert.label || "");
+    return String((alert.type || "message") + ":" + subject).slice(0, 220);
+  }
+
+  function markDashboardAlertsSeen(alerts) {
+    const seen = getSeenDashboardAlerts();
+    (alerts || []).forEach(function (alert) {
+      const items = Array.isArray(alert.items) ? alert.items : [];
+      if (items.length) {
+        items.forEach(function (item) {
+          seen[dashboardAlertKey(alert, item)] = Date.now();
+        });
+      } else {
+        seen[dashboardAlertKey(alert, null)] = Date.now();
+      }
+    });
+    saveSeenDashboardAlerts(seen);
+  }
+
+  function markDashboardAlertItemSeen(alert, item) {
+    const seen = getSeenDashboardAlerts();
+    seen[dashboardAlertKey(alert, item || null)] = Date.now();
+    saveSeenDashboardAlerts(seen);
+    app.state.dashboardAlerts = filterDashboardAlerts(app.state.dashboardAlerts || []);
+    updateDashboardAlertsPanel();
+  }
+
+  function dashboardAlertTotal(alerts) {
+    return (alerts || []).reduce(function (sum, alert) {
+      const items = Array.isArray(alert.items) ? alert.items : [];
+      return sum + (items.length || Number(alert.count || 1));
+    }, 0);
+  }
+
+  function renderDashboardAlertsPanel() {
+    const total = dashboardAlertTotal(app.state.dashboardAlerts || []);
+    return '<h2>Alertas importantes</h2>' +
+      (total ?
+        '<button type="button" class="button primary" data-open-dashboard-alerts>Ver alertas (' + app.escapeHtml(total) + ')</button>' :
+        '<div class="empty">No hay alertas pendientes.</div>');
+  }
+
+  function updateDashboardAlertsPanel() {
+    const section = document.getElementById("dashboardImportantAlerts");
+    if (section) section.innerHTML = renderDashboardAlertsPanel();
   }
 
   function showDashboardAlerts() {
@@ -559,14 +651,17 @@
       if (!root) return;
       root.querySelectorAll("[data-dashboard-alert]").forEach(function (button) {
         button.addEventListener("click", function () {
-          showDashboardAlertItems(Number(button.dataset.dashboardAlert));
+          showDashboardAlertItems(Number(button.dataset.dashboardAlert), alerts);
         });
       });
     }, 0);
+    markDashboardAlertsSeen(alerts);
+    app.state.dashboardAlerts = filterDashboardAlerts(app.state.dashboardAlerts || []);
+    updateDashboardAlertsPanel();
   }
 
-  function showDashboardAlertItems(index) {
-    const alert = (app.state.dashboardAlerts || [])[index];
+  function showDashboardAlertItems(index, alertList) {
+    const alert = (alertList || app.state.dashboardAlerts || [])[index];
     if (!alert) return;
     const items = alert.items || [];
     if (!items.length) {
@@ -596,6 +691,7 @@
   }
 
   function openAlertTarget(alert, item) {
+    markDashboardAlertItemSeen(alert, item || null);
     closeCurrentModal();
     if (alert.type === "requests") {
       app.state.pendingRequestOpen = item ? { id: item.id, category: item.category } : null;
