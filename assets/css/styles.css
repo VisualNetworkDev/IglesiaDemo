@@ -1233,12 +1233,24 @@ textarea {
     min-height: auto;
   }
 
+  .hero-copy {
+    justify-content: flex-start;
+  }
+
   .summary-panel {
     display: none;
   }
 
   .home-side {
     grid-template-rows: auto auto auto;
+    align-items: stretch;
+  }
+
+  .home-story,
+  .service-card,
+  .location-card {
+    min-height: auto;
+    overflow: visible;
   }
 
   .story-grid {
@@ -1260,7 +1272,24 @@ textarea {
   }
 
   .ministry-slider {
-    grid-auto-columns: minmax(280px, 86%);
+    grid-auto-columns: minmax(0, calc(100% - 8px));
+    gap: 12px;
+  }
+
+  .ministry-slide {
+    min-height: auto;
+    grid-template-rows: 240px auto;
+  }
+
+  .ministry-slide img {
+    height: 240px;
+    min-height: 0;
+  }
+
+  .ministry-slide div {
+    min-height: 150px;
+    padding: 16px;
+    background: #fff;
   }
 
   .wide-panel {
@@ -1319,8 +1348,12 @@ textarea {
     font-size: clamp(34px, 10vw, 46px);
   }
 
+  .hero-panel {
+    padding: 18px;
+  }
+
   .hero-gallery {
-    grid-template-rows: 110px;
+    display: none;
     gap: 8px;
   }
 
@@ -1335,6 +1368,34 @@ textarea {
 
   .action-card {
     min-height: 70px;
+  }
+
+  .home-story,
+  .service-card,
+  .location-card {
+    padding: 16px;
+  }
+
+  .home-story h2,
+  .service-card h2,
+  .location-card h2 {
+    font-size: clamp(28px, 8vw, 38px);
+  }
+
+  .service-card {
+    min-height: 250px;
+  }
+
+  .ministry-slide {
+    grid-template-rows: 220px auto;
+  }
+
+  .ministry-slide img {
+    height: 220px;
+  }
+
+  .ministry-slide h3 {
+    font-size: 24px;
   }
 
   .detail-card {
