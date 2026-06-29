@@ -128,10 +128,17 @@
     if (!button) return;
     const row = (app.state.fileRows || [])[Number(button.dataset.remove)];
     if (!row) return;
-    if (!confirm("Borrar este archivo de Drive y del listado?")) return;
-    app.api("deleteDriveFile", { id: row.id, fileId: row.fileId }).then(function (result) {
-      app.showSuccess(result.message || "Archivo borrado.");
-      loadFiles();
-    }).catch(app.showError);
+    app.confirm({
+      title: "Borrar archivo",
+      message: "Borrar este archivo de Drive y del listado?",
+      confirmText: "Borrar",
+      danger: true
+    }).then(function (confirmed) {
+      if (!confirmed) return;
+      app.api("deleteDriveFile", { id: row.id, fileId: row.fileId }).then(function (result) {
+        app.showSuccess(result.message || "Archivo borrado.");
+        loadFiles();
+      }).catch(app.showError);
+    });
   }
 })(window);

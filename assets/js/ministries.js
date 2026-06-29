@@ -93,11 +93,18 @@
       }).catch(app.showError);
     }
     if (button.dataset.remove !== undefined) {
-      if (!confirm("Borrar este ministerio?")) return;
-      app.api("removeMinistry", { id: row.id }).then(function (result) {
-        app.showSuccess(result.message || "Ministerio borrado.");
-        loadMinistries();
-      }).catch(app.showError);
+      app.confirm({
+        title: "Borrar ministerio",
+        message: "Borrar este ministerio permanentemente?",
+        confirmText: "Borrar",
+        danger: true
+      }).then(function (confirmed) {
+        if (!confirmed) return;
+        app.api("removeMinistry", { id: row.id }).then(function (result) {
+          app.showSuccess(result.message || "Ministerio borrado.");
+          loadMinistries();
+        }).catch(app.showError);
+      });
     }
   }
 

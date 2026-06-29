@@ -96,11 +96,18 @@
       }).catch(app.showError);
     }
     if (button.dataset.remove !== undefined) {
-      if (!confirm("Borrar este evento?")) return;
-      app.api("removeEvent", { id: row.id }).then(function (result) {
-        app.showSuccess(result.message || "Evento borrado.");
-        loadEvents();
-      }).catch(app.showError);
+      app.confirm({
+        title: "Borrar evento",
+        message: "Borrar este evento permanentemente?",
+        confirmText: "Borrar",
+        danger: true
+      }).then(function (confirmed) {
+        if (!confirmed) return;
+        app.api("removeEvent", { id: row.id }).then(function (result) {
+          app.showSuccess(result.message || "Evento borrado.");
+          loadEvents();
+        }).catch(app.showError);
+      });
     }
   }
 

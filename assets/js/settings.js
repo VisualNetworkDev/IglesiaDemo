@@ -287,18 +287,38 @@
     if (!row) return;
     if (button.dataset.edit !== undefined) return fillUserForm(row);
     if (button.dataset.viewpass !== undefined) {
-      prompt("Contraseña guardada para " + (row.name || row.username), row.visiblePassword || "No hay contraseña visible guardada. Resetea la contraseña para guardarla.");
+      app.openModal({
+        title: "Contrasena guardada",
+        body: '<div class="detail-grid">' +
+          '<div class="detail-item full"><span>Usuario</span><strong>' + app.escapeHtml(row.name || row.username || "") + '</strong></div>' +
+          '<div class="detail-item full"><span>Contrasena</span><strong>' + app.escapeHtml(row.visiblePassword || "No hay contrasena visible guardada. Resetea la contrasena para guardarla.") + '</strong></div>' +
+        '</div>'
+      });
       return;
     }
     if (button.dataset.reset !== undefined) {
-      const password = prompt("Nueva contraseña corta", "1234");
-      if (password) return runUserAction("resetAdminPassword", { userId: row.id, password: password });
+      return app.prompt({
+        title: "Resetear contrasena",
+        label: "Nueva contrasena corta",
+        value: "1234",
+        required: true,
+        primaryText: "Resetear"
+      }).then(function (password) {
+        if (password) runUserAction("resetAdminPassword", { userId: row.id, password: password });
+      });
     }
     if (button.dataset.toggle !== undefined) {
       return runUserAction("deactivateAdminUser", { userId: row.id, active: !(row.active === true || row.active === "true") });
     }
     if (button.dataset.remove !== undefined) {
-      if (confirm("Borrar este usuario del listado?")) runUserAction("deleteAdminUser", { userId: row.id });
+      app.confirm({
+        title: "Borrar usuario",
+        message: "Borrar este usuario del listado?",
+        confirmText: "Borrar",
+        danger: true
+      }).then(function (confirmed) {
+        if (confirmed) runUserAction("deleteAdminUser", { userId: row.id });
+      });
     }
   }
 

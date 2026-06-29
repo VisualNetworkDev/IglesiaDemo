@@ -87,7 +87,7 @@
         ["status", "Estado", app.badge],
         ["reference", "Referencia"]
       ], function (row, index) {
-        const actions = [];
+        const actions = ['<button type="button" class="button primary" data-view="' + index + '">Ver</button>'];
         if (row.status === "Reportado") {
           actions.push('<button type="button" class="button ok" data-verify="' + index + '">Verificar</button>');
           actions.push('<button type="button" class="button warning" data-reject="' + index + '">Rechazar</button>');
@@ -98,6 +98,12 @@
         }
         return actions.join("");
       });
+      if (app.state.pendingFinanceOpen) {
+        const pending = app.state.pendingFinanceOpen;
+        const row = app.state.financeRows.filter(function (item) { return String(item.id) === String(pending.id); })[0];
+        app.state.pendingFinanceOpen = null;
+        if (row) showFinanceDetails(row);
+      }
     }).catch(app.showError);
   }
 
@@ -105,26 +111,87 @@
     const button = event.target.closest("button");
     if (!button) return;
     const rows = app.state.financeRows || [];
-    const index = Number(button.dataset.verify || button.dataset.reject || button.dataset.void || button.dataset.correct);
+    const index = Number(button.dataset.view || button.dataset.verify || button.dataset.reject || button.dataset.void || button.dataset.correct);
     const row = rows[index];
     if (!row) return;
+    if (button.dataset.view !== undefined) return showFinanceDetails(row);
     if (button.dataset.verify !== undefined) return run("verifyContribution", { id: row.id });
     if (button.dataset.reject !== undefined) {
-      const reason = prompt("Motivo del rechazo");
-      if (reason) run("rejectContribution", { id: row.id, reason: reason });
+      return app.prompt({
+        title: "Rechazar movimiento",
+        label: "Motivo del rechazo",
+        multiline: true,
+        required: true,
+        primaryText: "Rechazar"
+      }).then(function (reason) {
+        if (reason) run("rejectContribution", { id: row.id, reason: reason });
+      });
     }
     if (button.dataset.void !== undefined) {
-      const reason = prompt("Motivo obligatorio de anulacion");
-      if (reason) run("voidContribution", { id: row.id, reason: reason });
+      return app.prompt({
+        title: "Anular movimiento",
+        label: "Motivo obligatorio",
+        multiline: true,
+        required: true,
+        primaryText: "Anular"
+      }).then(function (reason) {
+        if (reason) run("voidContribution", { id: row.id, reason: reason });
+      });
     }
     if (button.dataset.correct !== undefined) {
-      const reason = prompt("Motivo obligatorio de correccion");
-      if (!reason) return;
-      const amount = prompt("Monto corregido", row.amount);
-      if (!amount || Number(amount) <= 0) return;
-      const notes = prompt("Notas de correccion", row.notes || "") || "";
-      run("correctContribution", { id: row.id, reason: reason, correction: Object.assign({}, row, { amount: amount, notes: notes }) });
+      return app.openModal({
+        title: "Corregir movimiento",
+        size: "wide",
+        body: '<form class="modal-form">' +
+          '<label>Motivo obligatorio<textarea name="reason" rows="3" required></textarea></label>' +
+          '<div class="form-grid">' +
+            '<label>Monto corregido<input name="amount" type="number" min="0.01" step="0.01" value="' + app.escapeAttr(row.amount || "") + '" required></label>' +
+            '<label>Fecha<input name="date" type="date" value="' + app.escapeAttr(row.date || "") + '"></label>' +
+            '<label>Metodo<input name="method" value="' + app.escapeAttr(row.method || "") + '"></label>' +
+            '<label>Referencia<input name="reference" value="' + app.escapeAttr(row.reference || "") + '"></label>' +
+          '</div>' +
+          '<label>Notas de correccion<textarea name="notes" rows="3">' + app.escapeHtml(row.notes || "") + '</textarea></label>' +
+        '</form>',
+        primaryText: "Guardar correccion",
+        cancelText: "Cancelar"
+      }).then(function (result) {
+        if (!result) return;
+        const values = result.values || {};
+        if (!values.amount || Number(values.amount) <= 0) return;
+        run("correctContribution", {
+          id: row.id,
+          reason: values.reason,
+          correction: Object.assign({}, row, {
+            amount: values.amount,
+            date: values.date || row.date,
+            method: values.method || row.method,
+            reference: values.reference || row.reference,
+            notes: values.notes || ""
+          })
+        });
+      });
     }
+  }
+
+  function showFinanceDetails(row) {
+    app.openModal({
+      title: "Movimiento " + (row.id || ""),
+      size: "wide",
+      body: '<div class="detail-grid">' +
+        detail("Fecha", row.date) +
+        detail("Estado", row.status) +
+        detail("Persona / beneficiario", row.personName) +
+        detail("Tipo", row.type) +
+        detail("Monto", "$" + Number(row.amount || 0).toFixed(2)) +
+        detail("Metodo", row.method) +
+        detail("Referencia", row.reference) +
+        detail("Registro ID", row.recordId) +
+        detail("Categoria", row.category) +
+        detail("Creado", row.createdAt) +
+        detail("Actualizado", row.updatedAt) +
+        detail("Notas", row.notes, true) +
+      '</div>'
+    });
   }
 
   function run(action, payload) {
@@ -141,5 +208,11 @@
 
   function field(name, label, type, required, extra) {
     return '<label>' + label + '<input name="' + name + '" type="' + type + '"' + (required ? " required" : "") + (extra ? " " + extra : "") + '></label>';
+  }
+
+  function detail(label, value, full) {
+    const text = value === undefined || value === null || value === "" ? "Sin dato" : value;
+    const body = full ? '<p>' + app.escapeHtml(text).replace(/\n/g, "<br>") + '</p>' : '<strong>' + app.escapeHtml(text) + '</strong>';
+    return '<div class="detail-item' + (full ? " full" : "") + '"><span>' + app.escapeHtml(label) + '</span>' + body + '</div>';
   }
 })(window);

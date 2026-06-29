@@ -39,6 +39,109 @@
     }
   };
 
+  app.openModal = function (options) {
+    const config = options || {};
+    const root = ensureModalRoot();
+    if (root._closeModal) root._closeModal(null);
+    const hasPrimary = Boolean(config.primaryText);
+    const cardClass = "modal-card" + (config.size === "wide" ? " wide" : "");
+    root.innerHTML =
+      '<div class="modal-backdrop" data-modal-backdrop>' +
+        '<section class="' + cardClass + '" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">' +
+          '<header class="modal-header">' +
+            '<h2 id="adminModalTitle">' + app.escapeHtml(config.title || "Detalle") + '</h2>' +
+            '<button type="button" class="alert-close" data-modal-action="cancel" aria-label="Cerrar">x</button>' +
+          '</header>' +
+          '<div class="modal-body">' + (config.body || "") + '</div>' +
+          '<footer class="modal-actions">' +
+            '<button type="button" class="button" data-modal-action="cancel">' + app.escapeHtml(config.cancelText || "Cerrar") + '</button>' +
+            (hasPrimary ? '<button type="button" class="button ' + (config.danger ? "danger" : "primary") + '" data-modal-action="primary">' + app.escapeHtml(config.primaryText) + '</button>' : '') +
+          '</footer>' +
+        '</section>' +
+      '</div>';
+
+    const firstField = root.querySelector("input, select, textarea, button[data-modal-action='primary']");
+    if (firstField) window.setTimeout(function () { firstField.focus(); }, 20);
+
+    return new Promise(function (resolve) {
+      function close(value) {
+        root.innerHTML = "";
+        root._closeModal = null;
+        document.removeEventListener("keydown", onKeydown);
+        resolve(value);
+      }
+
+      function submitPrimary() {
+        const form = root.querySelector("form");
+        if (form && !form.reportValidity()) return;
+        close({ values: form ? ChurchFlowAPI.formToPayload(form) : {} });
+      }
+
+      function onKeydown(event) {
+        if (event.key === "Escape") close(null);
+      }
+
+      root.onclick = function (event) {
+        const actionButton = event.target.closest("[data-modal-action]");
+        if (!actionButton) return;
+        if (actionButton.dataset.modalAction === "primary") submitPrimary();
+        if (actionButton.dataset.modalAction === "cancel") close(null);
+      };
+      root._closeModal = close;
+      root.querySelectorAll("form").forEach(function (form) {
+        form.addEventListener("submit", function (event) {
+          event.preventDefault();
+          if (hasPrimary) submitPrimary();
+        });
+      });
+      document.addEventListener("keydown", onKeydown);
+    });
+  };
+
+  app.prompt = function (options) {
+    const config = options || {};
+    const inputHtml = config.multiline ?
+      '<textarea name="value" rows="' + (config.rows || 4) + '"' + (config.required ? " required" : "") + '>' + app.escapeHtml(config.value || "") + '</textarea>' :
+      '<input name="value" type="' + app.escapeAttr(config.type || "text") + '" value="' + app.escapeAttr(config.value || "") + '"' + (config.required ? " required" : "") + '>';
+    return app.openModal({
+      title: config.title || "Completar",
+      body: '<form class="modal-form"><label>' + app.escapeHtml(config.label || "Valor") + inputHtml + '</label></form>',
+      primaryText: config.primaryText || "Guardar",
+      cancelText: config.cancelText || "Cancelar"
+    }).then(function (result) {
+      return result ? result.values.value : null;
+    });
+  };
+
+  app.selectModal = function (options) {
+    const config = options || {};
+    const optionsHtml = (config.options || []).map(function (item) {
+      const selected = String(item) === String(config.value || "") ? " selected" : "";
+      return '<option' + selected + '>' + app.escapeHtml(item) + '</option>';
+    }).join("");
+    return app.openModal({
+      title: config.title || "Seleccionar",
+      body: '<form class="modal-form"><label>' + app.escapeHtml(config.label || "Opcion") + '<select name="value" required>' + optionsHtml + '</select></label></form>',
+      primaryText: config.primaryText || "Guardar",
+      cancelText: config.cancelText || "Cancelar"
+    }).then(function (result) {
+      return result ? result.values.value : null;
+    });
+  };
+
+  app.confirm = function (options) {
+    const config = options || {};
+    return app.openModal({
+      title: config.title || "Confirmar",
+      body: '<p>' + app.escapeHtml(config.message || "Confirma esta accion.") + '</p>',
+      primaryText: config.confirmText || "Confirmar",
+      cancelText: config.cancelText || "Cancelar",
+      danger: config.danger === true
+    }).then(function (result) {
+      return Boolean(result);
+    });
+  };
+
   app.renderTable = function (rows, columns, actionBuilder) {
     if (!rows || !rows.length) return '<div class="empty">No hay datos para mostrar.</div>';
     const header = columns.map(function (column) { return '<th>' + app.escapeHtml(column[1]) + '</th>'; }).join("") + (actionBuilder ? "<th>Acciones</th>" : "");
@@ -73,11 +176,13 @@
       app.setContent('<section class="panel"><p class="status">Cargando dashboard...</p></section>');
       app.api("getDashboardData", {}).then(function (result) {
         const data = result.data || {};
+        app.state.dashboardData = data;
+        app.state.dashboardAlerts = normalizeDashboardAlerts(data);
         app.setContent(
           '<div class="stats-grid">' +
             stat("Solicitudes nuevas", data.newRequests || 0) +
             stat("Solicitudes pendientes", data.pendingRequests || 0) +
-            stat("Contribuciones reportadas", data.reportedContributions || 0) +
+            stat("Total verificado", money(data.verifiedContributionTotal || 0)) +
             stat("Por verificar", data.pendingContributions || 0) +
             stat("Miembros activos", data.activeRecords || 0) +
             stat("Proximos eventos", data.upcomingEvents || 0) +
@@ -91,7 +196,12 @@
             quick("reports", "Generar reportes") +
           '</div></section>' +
           '<section class="panel"><h2>Alertas importantes</h2>' +
-            ((data.alerts || []).length ? '<ul>' + data.alerts.map(function (item) { return '<li>' + app.escapeHtml(item) + '</li>'; }).join("") + '</ul>' : '<div class="empty">No hay alertas pendientes.</div>') +
+            (app.state.dashboardAlerts.length ?
+              '<button type="button" class="button primary" data-open-dashboard-alerts>Ver alertas (' + app.escapeHtml(app.state.dashboardAlerts.length) + ')</button>' +
+              '<ul class="alert-summary">' + app.state.dashboardAlerts.map(function (item, index) {
+                return '<li><button type="button" data-alert-index="' + index + '"><span>' + app.escapeHtml(item.label) + '</span><strong>' + app.escapeHtml(item.count || "") + '</strong></button></li>';
+              }).join("") + '</ul>' :
+              '<div class="empty">No hay alertas pendientes.</div>') +
           '</section>'
         );
       }).catch(app.showError);
@@ -115,6 +225,10 @@
       );
       document.getElementById("loadRequests").addEventListener("click", loadRequests);
       document.getElementById("requestsTable").addEventListener("click", requestAction);
+      if (app.state.pendingRequestOpen) {
+        document.getElementById("requestCategory").value = app.state.pendingRequestOpen.category || "";
+        document.getElementById("requestStatus").value = "";
+      }
       loadRequests();
     }
   });
@@ -124,6 +238,7 @@
     subtitle: "Historial de acciones no editable",
     render: function () {
       app.requireAccess("audit", "read");
+      const cleanButton = canCleanAudit() ? '<button type="button" class="button danger" id="clearAudit">Borrar auditoria</button>' : "";
       app.setContent(
         '<section class="panel">' +
           '<div class="toolbar">' +
@@ -133,11 +248,13 @@
             '<label>Desde<input id="auditFrom" type="date"></label>' +
             '<label>Hasta<input id="auditTo" type="date"></label>' +
             '<button type="button" class="button" id="loadAudit">Buscar</button>' +
+            cleanButton +
           '</div>' +
           '<div id="auditTable"></div>' +
         '</section>'
       );
       document.getElementById("loadAudit").addEventListener("click", loadAudit);
+      if (document.getElementById("clearAudit")) document.getElementById("clearAudit").addEventListener("click", clearAuditLogs);
       loadAudit();
     }
   });
@@ -189,6 +306,13 @@
     document.getElementById("moduleContent").addEventListener("click", function (event) {
       const quickButton = event.target.closest("[data-quick-module]");
       if (quickButton) setModule(quickButton.dataset.quickModule);
+      const alertsButton = event.target.closest("[data-open-dashboard-alerts]");
+      if (alertsButton) showDashboardAlerts();
+      const alertSummary = event.target.closest("[data-alert-index]");
+      if (alertSummary) showDashboardAlertItems(Number(alertSummary.dataset.alertIndex));
+    });
+    document.getElementById("alertArea").addEventListener("click", function (event) {
+      if (event.target.closest("[data-dismiss-alert]")) clearAlert();
     });
     document.addEventListener("click", function (event) {
       const button = event.target.closest("[data-toggle-password]");
@@ -245,6 +369,8 @@
     renderCurrentModule();
   }
 
+  app.openModule = setModule;
+
   function renderCurrentModule() {
     clearAlert();
     const name = app.state.currentModule || "dashboard";
@@ -294,10 +420,17 @@
         ["assignedTo", "Responsable"],
         ["createdAt", "Creado"]
       ], function (_, index) {
-        return '<button type="button" class="button" data-status="' + index + '">Cambiar estado</button>' +
+        return '<button type="button" class="button primary" data-view="' + index + '">Ver</button>' +
+          '<button type="button" class="button" data-status="' + index + '">Estado</button>' +
           '<button type="button" class="button" data-assign="' + index + '">Asignar</button>' +
           '<button type="button" class="button" data-note="' + index + '">Nota privada</button>';
       });
+      if (app.state.pendingRequestOpen) {
+        const pending = app.state.pendingRequestOpen;
+        const row = app.state.requestRows.filter(function (item) { return String(item.id) === String(pending.id); })[0];
+        app.state.pendingRequestOpen = null;
+        if (row) showRequestDetails(row);
+      }
     }).catch(app.showError);
   }
 
@@ -305,20 +438,43 @@
     const button = event.target.closest("button");
     if (!button) return;
     const rows = app.state.requestRows || [];
-    const index = Number(button.dataset.status || button.dataset.assign || button.dataset.note);
+    const index = Number(button.dataset.view || button.dataset.status || button.dataset.assign || button.dataset.note);
     const row = rows[index];
     if (!row) return;
+    if (button.dataset.view !== undefined) {
+      showRequestDetails(row);
+    }
     if (button.dataset.status !== undefined) {
-      const status = prompt("Nuevo estado: Nuevo, En revision, Asignado, Contactado, Resuelto, Archivado", row.status || "Nuevo");
-      if (status) updateRequest({ id: row.id, category: row.category, status: status });
+      app.selectModal({
+        title: "Cambiar estado",
+        label: "Estado de la solicitud",
+        value: row.status || "Nuevo",
+        options: ["Nuevo", "En revision", "Asignado", "Contactado", "Resuelto", "Archivado"],
+        primaryText: "Guardar estado"
+      }).then(function (status) {
+        if (status) updateRequest({ id: row.id, category: row.category, status: status });
+      });
     }
     if (button.dataset.assign !== undefined) {
-      const assignedTo = prompt("Responsable asignado", row.assignedTo || "");
-      if (assignedTo !== null) updateRequest({ id: row.id, category: row.category, assignedTo: assignedTo, status: "Asignado" });
+      app.prompt({
+        title: "Asignar responsable",
+        label: "Responsable asignado",
+        value: row.assignedTo || "",
+        primaryText: "Asignar"
+      }).then(function (assignedTo) {
+        if (assignedTo !== null) updateRequest({ id: row.id, category: row.category, assignedTo: assignedTo, status: "Asignado" });
+      });
     }
     if (button.dataset.note !== undefined) {
-      const note = prompt("Nota privada");
-      if (note) updateRequest({ id: row.id, category: row.category, privateNote: note });
+      app.prompt({
+        title: "Nota privada",
+        label: "Nota para seguimiento interno",
+        multiline: true,
+        required: true,
+        primaryText: "Guardar nota"
+      }).then(function (note) {
+        if (note) updateRequest({ id: row.id, category: row.category, privateNote: note });
+      });
     }
   }
 
@@ -351,8 +507,162 @@
     }).catch(app.showError);
   }
 
+  function clearAuditLogs() {
+    app.confirm({
+      title: "Borrar auditoria",
+      message: "Esto limpiara el historial de auditoria visible del ano activo. La accion queda registrada como limpieza de entrega.",
+      confirmText: "Borrar auditoria",
+      danger: true
+    }).then(function (confirmed) {
+      if (!confirmed) return;
+      app.api("clearAuditLogs", {}).then(function (result) {
+        app.showSuccess(result.message || "Auditoria borrada.");
+        loadAudit();
+      }).catch(app.showError);
+    });
+  }
+
+  function ensureModalRoot() {
+    let root = document.getElementById("adminModalRoot");
+    if (!root) {
+      root = document.createElement("div");
+      root.id = "adminModalRoot";
+      root.className = "modal-root";
+      document.body.appendChild(root);
+    }
+    return root;
+  }
+
+  function normalizeDashboardAlerts(data) {
+    if (Array.isArray(data.alertDetails) && data.alertDetails.length) return data.alertDetails;
+    return (data.alerts || []).map(function (label, index) {
+      return { type: "message", label: label, count: index + 1, items: [] };
+    });
+  }
+
+  function showDashboardAlerts() {
+    const alerts = app.state.dashboardAlerts || [];
+    if (!alerts.length) {
+      app.openModal({ title: "Alertas importantes", body: '<div class="empty">No hay alertas pendientes.</div>' });
+      return;
+    }
+    app.openModal({
+      title: "Alertas importantes",
+      body: '<ul class="alert-summary">' + alerts.map(function (item, index) {
+        return '<li><button type="button" data-dashboard-alert="' + index + '"><span>' + app.escapeHtml(item.label) + '</span><strong>' + app.escapeHtml(item.count || "") + '</strong></button></li>';
+      }).join("") + '</ul>'
+    }).then(function () {});
+    window.setTimeout(function () {
+      const root = document.getElementById("adminModalRoot");
+      if (!root) return;
+      root.querySelectorAll("[data-dashboard-alert]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          showDashboardAlertItems(Number(button.dataset.dashboardAlert));
+        });
+      });
+    }, 0);
+  }
+
+  function showDashboardAlertItems(index) {
+    const alert = (app.state.dashboardAlerts || [])[index];
+    if (!alert) return;
+    const items = alert.items || [];
+    if (!items.length) {
+      openAlertTarget(alert);
+      return;
+    }
+    app.openModal({
+      title: alert.label,
+      body: '<div class="alert-item-list">' + items.map(function (item, itemIndex) {
+        return '<button type="button" data-alert-item="' + itemIndex + '">' +
+          '<span class="alert-item-main"><strong>' + app.escapeHtml(item.title || item.name || item.id || "Detalle") + '</strong>' +
+          '<span>' + app.escapeHtml(item.subtitle || item.message || item.createdAt || "") + '</span></span>' +
+          '<span>' + app.escapeHtml(item.status || "") + '</span>' +
+        '</button>';
+      }).join("") + '</div>',
+      size: "wide"
+    }).then(function () {});
+    window.setTimeout(function () {
+      const root = document.getElementById("adminModalRoot");
+      if (!root) return;
+      root.querySelectorAll("[data-alert-item]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          openAlertTarget(alert, items[Number(button.dataset.alertItem)]);
+        });
+      });
+    }, 0);
+  }
+
+  function openAlertTarget(alert, item) {
+    closeCurrentModal();
+    if (alert.type === "requests") {
+      app.state.pendingRequestOpen = item ? { id: item.id, category: item.category } : null;
+      app.state.currentModule = "requests";
+      renderCurrentModule();
+      return;
+    }
+    if (alert.type === "finance") {
+      app.state.pendingFinanceOpen = item ? { id: item.id } : null;
+      app.state.currentModule = "finance";
+      renderCurrentModule();
+      return;
+    }
+    app.openModal({ title: "Alerta", body: '<p>' + app.escapeHtml(alert.label || "Alerta pendiente.") + '</p>' });
+  }
+
+  function closeCurrentModal() {
+    const root = ensureModalRoot();
+    if (root._closeModal) root._closeModal(null);
+    else root.innerHTML = "";
+  }
+
+  function showRequestDetails(row) {
+    const fields = [
+      ["id", "ID"],
+      ["category", "Categoria"],
+      ["status", "Estado"],
+      ["assignedTo", "Responsable"],
+      ["name", "Nombre"],
+      ["phone", "Telefono"],
+      ["email", "Email"],
+      ["address", "Direccion"],
+      ["subject", "Asunto"],
+      ["assistanceType", "Tipo de asistencia"],
+      ["documentType", "Documento"],
+      ["interest", "Interes"],
+      ["availability", "Disponibilidad"],
+      ["message", "Mensaje", true],
+      ["privateNotes", "Notas privadas", true],
+      ["createdAt", "Creado"],
+      ["updatedAt", "Actualizado"]
+    ];
+    app.openModal({
+      title: "Solicitud " + (row.id || ""),
+      size: "wide",
+      body: '<div class="detail-grid">' + fields.map(function (field) {
+        return detailItem(field[1], row[field[0]], field[2]);
+      }).join("") + '</div>'
+    });
+  }
+
+  function canCleanAudit() {
+    const session = app.state.session || {};
+    const user = session.user || {};
+    return user.roleId === "ROLE_SUPER_ADMIN" || user.roleId === "ROLE_PASTOR_OWNER";
+  }
+
+  function detailItem(label, value, full) {
+    const text = value === undefined || value === null || value === "" ? "Sin dato" : value;
+    const body = full ? '<p>' + app.escapeHtml(text).replace(/\n/g, "<br>") + '</p>' : '<strong>' + app.escapeHtml(text) + '</strong>';
+    return '<div class="detail-item' + (full ? " full" : "") + '"><span>' + app.escapeHtml(label) + '</span>' + body + '</div>';
+  }
+
   function stat(label, value) {
     return '<article class="stat-card"><strong>' + app.escapeHtml(value) + '</strong><span>' + app.escapeHtml(label) + '</span></article>';
+  }
+
+  function money(value) {
+    return "$" + Number(value || 0).toFixed(2);
   }
 
   function quick(module, label) {
@@ -366,7 +676,8 @@
 
   function showAlert(message, kind) {
     const area = document.getElementById("alertArea");
-    area.innerHTML = '<div class="alert ' + (kind || "") + '">' + app.escapeHtml(message) + '</div>';
+    const title = kind === "error" ? "Revisa esto" : "Listo";
+    area.innerHTML = '<div class="alert ' + (kind || "") + '"><div><strong>' + title + '</strong><span>' + app.escapeHtml(message) + '</span></div><button type="button" class="alert-close" data-dismiss-alert aria-label="Cerrar">x</button></div>';
     setTimeout(clearAlert, 7000);
   }
 

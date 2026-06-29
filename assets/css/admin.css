@@ -259,15 +259,33 @@ textarea { resize: vertical; }
 }
 
 .alert {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
   margin-top: 14px;
   border-radius: 8px;
   padding: 12px 14px;
   border: 1px solid var(--line);
   background: #fff;
+  box-shadow: 0 12px 28px rgba(25,38,44,.08);
 }
 
+.alert strong { display: block; margin-bottom: 2px; }
 .alert.error { border-color: #e3b0b0; background: #fff4f4; color: var(--danger); }
 .alert.success { border-color: #b9dcc9; background: #f1fbf5; color: var(--ok); }
+
+.alert-close {
+  min-width: 32px;
+  min-height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+}
 
 .module-content {
   padding: clamp(16px, 3vw, 32px);
@@ -453,6 +471,186 @@ td .row-actions {
   background: #fff;
 }
 
+.modal-root:empty { display: none; }
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(23,32,38,.48);
+}
+
+.modal-card {
+  width: min(520px, 100%);
+  max-height: min(86vh, 780px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 28px 90px rgba(0,0,0,.28);
+}
+
+.modal-card.wide { width: min(880px, 100%); }
+
+.modal-header,
+.modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.modal-actions {
+  justify-content: flex-end;
+  border-top: 1px solid var(--line);
+  border-bottom: 0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.modal-body {
+  overflow: auto;
+  padding: 18px;
+}
+
+.modal-body p:first-child { margin-top: 0; }
+.modal-body p:last-child { margin-bottom: 0; }
+
+.modal-form {
+  display: grid;
+  gap: 12px;
+}
+
+.detail-grid,
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.detail-item {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fbfdfd;
+}
+
+.detail-item.full { grid-column: 1 / -1; }
+
+.detail-item span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.detail-item strong,
+.detail-item p {
+  margin: 4px 0 0;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.profile-card {
+  display: grid;
+  gap: 16px;
+}
+
+.profile-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fbfb;
+}
+
+.profile-hero h3 {
+  margin: 0 0 6px;
+  font-size: 24px;
+}
+
+.profile-hero p {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.profile-section {
+  display: grid;
+  gap: 10px;
+}
+
+.profile-section h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.alert-summary {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.alert-summary button,
+.alert-item-list button {
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.alert-summary button:hover,
+.alert-item-list button:hover {
+  border-color: var(--accent);
+  background: #f8fbfb;
+}
+
+.alert-item-list {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+}
+
+.alert-item-main {
+  min-width: 0;
+}
+
+.alert-item-main strong,
+.alert-item-main span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.alert-item-main span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 @media (max-width: 1100px) {
   .admin-shell { grid-template-columns: 1fr; }
   .sidebar {
@@ -477,7 +675,10 @@ td .row-actions {
   .topbar-actions .button { flex: 1; }
   .stats-grid,
   .form-grid,
+  .detail-grid,
+  .profile-grid,
   .schedule-row { grid-template-columns: 1fr; }
+  .profile-hero { display: grid; }
   .toolbar { display: grid; }
   .toolbar label { min-width: 0; }
 }

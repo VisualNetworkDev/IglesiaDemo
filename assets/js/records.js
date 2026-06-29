@@ -16,17 +16,17 @@
             '<div class="form-grid">' +
               field("firstName", "Nombre", "text", true) +
               field("lastName", "Apellido", "text", true) +
-              field("familyId", "Familia / hogar", "text", false) +
-              select("status", "Estado", ["Activo", "Inactivo", "Trasladado", "Fallecido", "Pendiente"]) +
+              field("birthDate", "Fecha de nacimiento", "date", false) +
               field("phone", "Telefono", "text", false) +
               field("email", "Email", "email", false) +
               field("address", "Direccion", "text", false) +
+              field("familyId", "Familia / hogar", "text", false) +
+              select("status", "Estado", ["Activo", "Inactivo", "Trasladado", "Fallecido", "Pendiente"]) +
               field("joinDate", "Fecha de ingreso", "date", false) +
-              field("birthDate", "Fecha de nacimiento", "date", false) +
-              select("membershipStatus", "Membresía", ["Miembro de la iglesia", "Asistente", "Visitante", "No miembro"]) +
               select("baptismStatus", "Bautismo", ["Bautizado", "No bautizado", "Por confirmar"]) +
-              field("membershipDate", "Fecha de Membresía", "date", false) +
               field("baptismDate", "Fecha de Bautizo", "date", false) +
+              select("membershipStatus", "Membresia", ["Miembro de la iglesia", "Asistente", "Visitante", "No miembro"]) +
+              field("membershipDate", "Fecha de Membresia", "date", false) +
               field("ministryRole", "Ministerio / cargo", "text", false) +
               '<label class="full">Notas privadas<textarea name="privateNotes" rows="3"></textarea></label>' +
             '</div>' +
@@ -144,7 +144,7 @@
     app.api("getRecordProfile", { recordId: id }).then(function (result) {
       const panel = document.getElementById("recordProfilePanel");
       panel.classList.remove("hidden");
-      document.getElementById("recordProfile").innerHTML = '<pre>' + app.escapeHtml(JSON.stringify(result.data, null, 2)) + '</pre>';
+      document.getElementById("recordProfile").innerHTML = renderProfile(result.data || {});
     }).catch(app.showError);
   }
 
@@ -159,6 +159,45 @@
     }).catch(app.showError);
   }
 
+  function renderProfile(data) {
+    const record = data.record || {};
+    const family = data.family || null;
+    const fullName = [record.firstName, record.lastName].filter(Boolean).join(" ") || record.id || "Miembro";
+    return '<article class="profile-card">' +
+      '<section class="profile-hero">' +
+        '<div><h3>' + app.escapeHtml(fullName) + '</h3><p>' + app.escapeHtml(record.id || "") + '</p></div>' +
+        '<div>' + app.badge(record.status || "Sin estado") + '</div>' +
+      '</section>' +
+      '<section class="profile-section"><h3>Datos personales</h3><div class="profile-grid">' +
+        detail("Nombre", record.firstName) +
+        detail("Apellido", record.lastName) +
+        detail("Fecha de nacimiento", record.birthDate) +
+        detail("Telefono", record.phone) +
+        detail("Email", record.email) +
+        detail("Direccion", record.address, true) +
+      '</div></section>' +
+      '<section class="profile-section"><h3>Familia y membresia</h3><div class="profile-grid">' +
+        detail("Familia / hogar", family ? (family.familyName || family.id) : record.familyId) +
+        detail("Fecha de ingreso", record.joinDate) +
+        detail("Membresia", record.membershipStatus) +
+        detail("Fecha de membresia", record.membershipDate) +
+        detail("Bautismo", record.baptismStatus) +
+        detail("Fecha de bautizo", record.baptismDate) +
+        detail("Ministerio / cargo", record.ministryRole, true) +
+      '</div></section>' +
+      (family ? '<section class="profile-section"><h3>Informacion del hogar</h3><div class="profile-grid">' +
+        detail("Hogar", family.familyName) +
+        detail("Telefono hogar", family.phone) +
+        detail("Email hogar", family.email) +
+        detail("Direccion hogar", family.address, true) +
+        detail("Notas del hogar", family.notes, true) +
+      '</div></section>' : '') +
+      '<section class="profile-section"><h3>Notas privadas</h3><div class="profile-grid">' +
+        detail("Notas", record.privateNotes, true) +
+      '</div></section>' +
+    '</article>';
+  }
+
   function exportRecords() {
     app.api("exportRecords", { status: value("recordStateFilter") }).then(function (result) {
       ChurchFlowAPI.downloadText(result.data.filename || "registros.csv", result.data.csv || "", "text/csv;charset=utf-8");
@@ -168,6 +207,12 @@
   function value(id) {
     const element = document.getElementById(id);
     return element ? element.value.trim() : "";
+  }
+
+  function detail(label, value, full) {
+    const text = value === undefined || value === null || value === "" ? "Sin dato" : value;
+    const body = full ? '<p>' + app.escapeHtml(text).replace(/\n/g, "<br>") + '</p>' : '<strong>' + app.escapeHtml(text) + '</strong>';
+    return '<div class="detail-item' + (full ? " full" : "") + '"><span>' + app.escapeHtml(label) + '</span>' + body + '</div>';
   }
 
   function field(name, label, type, required) {
