@@ -523,6 +523,18 @@ h3 {
   line-height: 1;
   font-weight: 900;
   backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: transform .18s ease, opacity .18s ease, background .18s ease;
+}
+
+.icon-arrow:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: rgba(255,255,255,.22);
+}
+
+.icon-arrow:disabled {
+  opacity: .42;
+  cursor: not-allowed;
 }
 
 .ministry-slider {
@@ -533,8 +545,17 @@ h3 {
   gap: 14px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
   scrollbar-width: none;
   padding-bottom: 4px;
+  cursor: grab;
+}
+
+.ministry-slider.is-dragging {
+  cursor: grabbing;
+  scroll-snap-type: none;
+  user-select: none;
 }
 
 .ministry-slide {
@@ -548,6 +569,7 @@ h3 {
   background: #fff;
   box-shadow: 0 16px 40px rgba(23,32,39,.08);
   cursor: pointer;
+  user-select: none;
 }
 
 .ministry-slide img {
@@ -555,6 +577,7 @@ h3 {
   height: 100%;
   min-height: 220px;
   object-fit: cover;
+  pointer-events: none;
 }
 
 .ministry-slide div {
@@ -583,6 +606,10 @@ h3 {
   gap: 7px;
 }
 
+.slider-dots[hidden] {
+  display: none;
+}
+
 .slider-dots button {
   width: 10px;
   height: 10px;
@@ -590,6 +617,8 @@ h3 {
   border-radius: 999px;
   padding: 0;
   background: #b8c8cb;
+  cursor: pointer;
+  transition: width .18s ease, background .18s ease, transform .18s ease;
 }
 
 .slider-dots button.active {
@@ -1019,13 +1048,77 @@ textarea {
 .detail-media {
   min-width: 0;
   min-height: 0;
+  position: relative;
+  overflow: hidden;
   background: #101820;
+}
+
+.detail-media::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 1;
+  height: 38%;
+  pointer-events: none;
+  background: linear-gradient(0deg, rgba(16,24,32,.62), rgba(16,24,32,0));
 }
 
 .detail-media img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.detail-main-photo {
+  display: block;
+  opacity: 0;
+  transform: scale(1.035);
+  filter: saturate(.88) contrast(.96);
+  transition: opacity .34s ease, transform .72s ease, filter .72s ease;
+}
+
+.detail-main-photo.is-visible {
+  opacity: 1;
+  transform: scale(1);
+  filter: saturate(1.06) contrast(1.02);
+}
+
+.detail-media-controls {
+  position: absolute;
+  left: 50%;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(255,255,255,.32);
+  border-radius: 999px;
+  padding: 8px;
+  background: rgba(23,32,39,.62);
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(0,0,0,.22);
+  backdrop-filter: blur(12px);
+}
+
+.detail-media-controls button {
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255,255,255,.16);
+  color: #fff;
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.detail-media-controls span {
+  min-width: 56px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 900;
 }
 
 .detail-body {
@@ -1059,13 +1152,32 @@ textarea {
   gap: 10px;
 }
 
-.detail-gallery img {
+.detail-thumb {
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  padding: 0;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+
+.detail-thumb:hover,
+.detail-thumb.active {
+  border-color: var(--accent);
+  box-shadow: 0 12px 26px rgba(23,32,39,.12);
+}
+
+.detail-thumb.active {
+  transform: translateY(-2px);
+}
+
+.detail-thumb img {
+  display: block;
   width: 100%;
   aspect-ratio: 4 / 3;
-  border-radius: 8px;
   object-fit: cover;
   border: 1px solid var(--line);
-  cursor: pointer;
 }
 
 @keyframes modalFade {

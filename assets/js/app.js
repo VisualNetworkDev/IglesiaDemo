@@ -86,7 +86,9 @@
     if (next) next.addEventListener("click", function () { moveMinistrySlider(1); });
     const slider = document.getElementById("ministriesGrid");
     if (slider) {
-      slider.addEventListener("scroll", updateMinistryDots);
+      slider.addEventListener("scroll", scheduleMinistrySliderUpdate, { passive: true });
+      window.addEventListener("resize", scheduleMinistrySliderUpdate);
+      initMinistryDrag(slider);
       slider.addEventListener("click", function (event) {
         const card = event.target.closest("[data-ministry-detail]");
         if (card) openMinistryDetail(Number(card.getAttribute("data-ministry-detail")));
@@ -120,14 +122,66 @@
     const gallery = document.getElementById("detailGallery");
     if (gallery) {
       gallery.addEventListener("click", function (event) {
-        const image = event.target.closest("img");
-        if (!image) return;
-        document.getElementById("detailMedia").innerHTML = '<img src="' + escapeAttr(image.getAttribute("src")) + '" alt="">';
+        const button = event.target.closest("[data-detail-photo]");
+        if (!button) return;
+        showDetailPhoto(Number(button.getAttribute("data-detail-photo")), true);
       });
+    }
+    const media = document.getElementById("detailMedia");
+    if (media) {
+      media.addEventListener("click", function (event) {
+        const directionButton = event.target.closest("[data-detail-direction]");
+        if (!directionButton) return;
+        const direction = Number(directionButton.getAttribute("data-detail-direction"));
+        showDetailPhoto((state.detailPhotoIndex || 0) + direction, true);
+      });
+      media.addEventListener("mouseenter", stopDetailSlideshow);
+      media.addEventListener("mouseleave", startDetailSlideshow);
     }
     document.addEventListener("keydown", function (event) {
       if (event.key === "Escape") closeDetail();
+      if (document.getElementById("detailModal").classList.contains("hidden")) return;
+      if (event.key === "ArrowLeft") showDetailPhoto((state.detailPhotoIndex || 0) - 1, true);
+      if (event.key === "ArrowRight") showDetailPhoto((state.detailPhotoIndex || 0) + 1, true);
     });
+  }
+
+  function initMinistryDrag(slider) {
+    const drag = { active: false, startX: 0, startLeft: 0, moved: false };
+    slider.addEventListener("pointerdown", function (event) {
+      if (event.button !== 0) return;
+      drag.active = true;
+      drag.startX = event.clientX;
+      drag.startLeft = slider.scrollLeft;
+      drag.moved = false;
+      slider.classList.add("is-dragging");
+      slider.setPointerCapture(event.pointerId);
+    });
+    slider.addEventListener("pointermove", function (event) {
+      if (!drag.active) return;
+      const delta = event.clientX - drag.startX;
+      if (Math.abs(delta) > 5) drag.moved = true;
+      slider.scrollLeft = drag.startLeft - delta;
+    });
+    ["pointerup", "pointercancel", "pointerleave"].forEach(function (eventName) {
+      slider.addEventListener(eventName, function (event) {
+        if (!drag.active) return;
+        drag.active = false;
+        slider.classList.remove("is-dragging");
+        if (event.pointerId !== undefined && slider.hasPointerCapture(event.pointerId)) {
+          slider.releasePointerCapture(event.pointerId);
+        }
+        if (drag.moved) {
+          state.suppressMinistryClick = true;
+          window.setTimeout(function () { state.suppressMinistryClick = false; }, 80);
+        }
+      });
+    });
+    slider.addEventListener("click", function (event) {
+      if (!state.suppressMinistryClick) return;
+      event.preventDefault();
+      event.stopPropagation();
+    }, true);
   }
 
   function moveMinistrySlider(direction) {
@@ -146,6 +200,9 @@
     document.querySelectorAll("[data-view-link]").forEach(function (button) {
       button.classList.toggle("active", button.getAttribute("data-view-link") === state.activeView);
     });
+    if (state.activeView === "church") {
+      window.setTimeout(updateMinistryDots, 0);
+    }
   }
 
   function setActiveRequest(requestName) {
@@ -267,6 +324,7 @@
     if (!ministries.length) {
       grid.innerHTML = '<div class="empty-state">Los ministerios apareceran aqui cuando esten disponibles.</div>';
       if (dots) dots.innerHTML = "";
+      window.setTimeout(updateMinistryDots, 0);
       return;
     }
     grid.innerHTML = ministries.map(function (item, index) {
@@ -282,27 +340,66 @@
       }).join("");
       dots.querySelectorAll("[data-ministry-dot]").forEach(function (button) {
         button.addEventListener("click", function () {
-          const target = grid.querySelectorAll(".ministry-slide")[Number(button.dataset.ministryDot)];
-          if (target) target.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
+          scrollToMinistrySlide(Number(button.dataset.ministryDot));
         });
       });
     }
-    updateMinistryDots();
+    window.setTimeout(updateMinistryDots, 0);
+  }
+
+  function scheduleMinistrySliderUpdate() {
+    if (state.ministryUpdatePending) return;
+    state.ministryUpdatePending = true;
+    window.requestAnimationFrame(function () {
+      state.ministryUpdatePending = false;
+      updateMinistryDots();
+    });
+  }
+
+  function scrollToMinistrySlide(index) {
+    const slider = document.getElementById("ministriesGrid");
+    const slides = slider ? Array.from(slider.querySelectorAll(".ministry-slide")) : [];
+    const target = slides[index];
+    if (!slider || !target) return;
+    const maxScroll = Math.max(0, slider.scrollWidth - slider.clientWidth);
+    const left = Math.min(maxScroll, Math.max(0, target.offsetLeft - ((slider.clientWidth - target.offsetWidth) / 2)));
+    slider.scrollTo({ left: left, behavior: "smooth" });
   }
 
   function updateMinistryDots() {
     const slider = document.getElementById("ministriesGrid");
     const dots = document.getElementById("ministryDots");
+    const prev = document.querySelector("[data-ministry-prev]");
+    const next = document.querySelector("[data-ministry-next]");
     if (!slider || !dots) return;
+    if (slider.clientWidth <= 0) return;
     const slides = Array.from(slider.querySelectorAll(".ministry-slide"));
-    if (!slides.length) return;
-    const index = slides.reduce(function (best, slide, current) {
-      const distance = Math.abs(slide.offsetLeft - slider.scrollLeft);
-      return distance < best.distance ? { index: current, distance: distance } : best;
-    }, { index: 0, distance: Infinity }).index;
+    if (!slides.length) {
+      dots.hidden = true;
+      if (prev) prev.disabled = true;
+      if (next) next.disabled = true;
+      return;
+    }
+    const maxScroll = Math.max(0, slider.scrollWidth - slider.clientWidth);
+    const canScroll = maxScroll > 3;
+    const index = getActiveMinistryIndex(slider, slides, maxScroll);
+    dots.hidden = !canScroll;
+    if (prev) prev.disabled = !canScroll || slider.scrollLeft <= 3;
+    if (next) next.disabled = !canScroll || slider.scrollLeft >= maxScroll - 3;
     dots.querySelectorAll("button").forEach(function (button, current) {
       button.classList.toggle("active", current === index);
     });
+  }
+
+  function getActiveMinistryIndex(slider, slides, maxScroll) {
+    if (slider.scrollLeft <= 3) return 0;
+    if (slider.scrollLeft >= maxScroll - 3) return slides.length - 1;
+    const center = slider.scrollLeft + (slider.clientWidth / 2);
+    return slides.reduce(function (best, slide, current) {
+      const slideCenter = slide.offsetLeft + (slide.offsetWidth / 2);
+      const distance = Math.abs(slideCenter - center);
+      return distance < best.distance ? { index: current, distance: distance } : best;
+    }, { index: 0, distance: Infinity }).index;
   }
 
   function renderEvents() {
@@ -346,7 +443,8 @@
       title: item.title || "Evento",
       description: item.description || "Informacion del evento disponible proximamente.",
       meta: [item.date, item.time, item.location].filter(Boolean),
-      photos: photos
+      photos: photos,
+      autoplay: true
     });
   }
 
@@ -354,33 +452,85 @@
     const modal = document.getElementById("detailModal");
     if (!modal) return;
     const photos = detail.photos && detail.photos.length ? detail.photos : [fallbackPhotos[0]];
+    stopDetailSlideshow();
+    state.detailPhotos = photos;
+    state.detailPhotoIndex = 0;
+    state.detailAutoplay = detail.autoplay === true && photos.length > 1 && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     document.getElementById("detailKicker").textContent = detail.kicker || "";
     document.getElementById("detailTitle").textContent = detail.title || "";
     document.getElementById("detailDescription").textContent = detail.description || "";
     document.getElementById("detailMeta").innerHTML = (detail.meta || []).map(function (item) {
       return '<span>' + escapeHtml(item) + '</span>';
     }).join("");
-    document.getElementById("detailMedia").innerHTML = '<img src="' + escapeAttr(photos[0]) + '" alt="">';
-    document.getElementById("detailGallery").innerHTML = photos.map(function (url) {
-      return '<img loading="lazy" src="' + escapeAttr(url) + '" alt="">';
+    document.getElementById("detailMedia").innerHTML =
+      '<img id="detailMainPhoto" class="detail-main-photo is-visible" src="' + escapeAttr(photos[0]) + '" alt="">' +
+      (photos.length > 1 ?
+        '<div class="detail-media-controls">' +
+          '<button type="button" data-detail-direction="-1" aria-label="Foto anterior">&lsaquo;</button>' +
+          '<span id="detailPhotoCounter">1 / ' + photos.length + '</span>' +
+          '<button type="button" data-detail-direction="1" aria-label="Foto siguiente">&rsaquo;</button>' +
+        '</div>' : '');
+    document.getElementById("detailGallery").innerHTML = photos.map(function (url, photoIndex) {
+      return '<button type="button" class="detail-thumb' + (photoIndex === 0 ? " active" : "") + '" data-detail-photo="' + photoIndex + '" aria-label="Ver foto ' + (photoIndex + 1) + '">' +
+        '<img loading="lazy" src="' + escapeAttr(url) + '" alt="">' +
+      '</button>';
     }).join("");
     modal.classList.remove("hidden");
     modal.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
+    startDetailSlideshow();
   }
 
   function closeDetail() {
     const modal = document.getElementById("detailModal");
     if (!modal || modal.classList.contains("hidden")) return;
+    stopDetailSlideshow();
     modal.classList.add("hidden");
     modal.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
+  }
+
+  function showDetailPhoto(index, manual) {
+    const photos = state.detailPhotos || [];
+    const image = document.getElementById("detailMainPhoto");
+    if (!photos.length || !image) return;
+    const nextIndex = (index + photos.length) % photos.length;
+    state.detailPhotoIndex = nextIndex;
+    image.classList.remove("is-visible");
+    window.setTimeout(function () {
+      image.src = photos[nextIndex];
+      image.classList.add("is-visible");
+    }, 140);
+    document.querySelectorAll("[data-detail-photo]").forEach(function (button, current) {
+      button.classList.toggle("active", current === nextIndex);
+    });
+    const counter = document.getElementById("detailPhotoCounter");
+    if (counter) counter.textContent = (nextIndex + 1) + " / " + photos.length;
+    if (manual) {
+      stopDetailSlideshow();
+      startDetailSlideshow();
+    }
+  }
+
+  function startDetailSlideshow() {
+    stopDetailSlideshow();
+    if (!state.detailAutoplay || !state.detailPhotos || state.detailPhotos.length < 2) return;
+    state.detailSlideshowTimer = window.setInterval(function () {
+      showDetailPhoto((state.detailPhotoIndex || 0) + 1, false);
+    }, 4200);
+  }
+
+  function stopDetailSlideshow() {
+    if (!state.detailSlideshowTimer) return;
+    window.clearInterval(state.detailSlideshowTimer);
+    state.detailSlideshowTimer = null;
   }
 
   function normalizeGallery(primaryUrl, value, index) {
     const urls = [];
     if (primaryUrl) urls.push(primaryUrl);
     parseGalleryUrls(value).forEach(function (url) { urls.push(url); });
+    if (uniqueUrls(urls).length) return uniqueUrls(urls);
     let fallbackIndex = index;
     while (uniqueUrls(urls).length < 3 && fallbackIndex < index + fallbackPhotos.length) {
       urls.push(fallbackPhotos[fallbackIndex % fallbackPhotos.length]);
