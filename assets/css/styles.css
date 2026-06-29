@@ -214,14 +214,15 @@ img {
     animation-delay: .08s;
   }
 }
-}
 
 .screen-scroll,
 .request-app {
   height: 100%;
   min-height: 0;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
 
@@ -585,6 +586,7 @@ h3 {
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
   overscroll-behavior-x: contain;
+  touch-action: pan-y;
   scrollbar-width: none;
   padding-bottom: 4px;
   cursor: grab;

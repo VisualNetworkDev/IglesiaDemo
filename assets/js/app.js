@@ -147,19 +147,30 @@
   }
 
   function initMinistryDrag(slider) {
-    const drag = { active: false, startX: 0, startLeft: 0, moved: false };
+    const drag = { active: false, locked: false, startX: 0, startY: 0, startLeft: 0, moved: false };
     slider.addEventListener("pointerdown", function (event) {
       if (event.button !== 0) return;
       drag.active = true;
+      drag.locked = false;
       drag.startX = event.clientX;
+      drag.startY = event.clientY;
       drag.startLeft = slider.scrollLeft;
       drag.moved = false;
-      slider.classList.add("is-dragging");
-      slider.setPointerCapture(event.pointerId);
     });
     slider.addEventListener("pointermove", function (event) {
       if (!drag.active) return;
       const delta = event.clientX - drag.startX;
+      const verticalDelta = event.clientY - drag.startY;
+      if (!drag.locked) {
+        if (Math.abs(delta) < 7 && Math.abs(verticalDelta) < 7) return;
+        if (Math.abs(verticalDelta) >= Math.abs(delta)) {
+          drag.active = false;
+          return;
+        }
+        drag.locked = true;
+        slider.classList.add("is-dragging");
+        slider.setPointerCapture(event.pointerId);
+      }
       if (Math.abs(delta) > 5) drag.moved = true;
       slider.scrollLeft = drag.startLeft - delta;
     });
