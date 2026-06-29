@@ -113,7 +113,7 @@
 
   function uploadPhotoIfNeeded(file, title) {
     if (!file) return Promise.resolve(null);
-    return ChurchFlowAPI.prepareUploadFile(file, "Fotos").then(function (prepared) {
+    return ChurchFlowAPI.prepareUploadFile(file, "public-photo").then(function (prepared) {
       return ChurchFlowAPI.fileToBase64(prepared).then(function (base64) {
         return app.api("uploadDriveFile", {
           fileType: "Fotos",

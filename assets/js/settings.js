@@ -153,7 +153,7 @@
     const input = document.getElementById(inputId);
     const file = input && input.files && input.files[0];
     if (!file) return Promise.resolve(null);
-    return ChurchFlowAPI.prepareUploadFile(file, "Fotos").then(function (prepared) {
+    return ChurchFlowAPI.prepareUploadFile(file, "qr").then(function (prepared) {
       return ChurchFlowAPI.fileToBase64(prepared).then(function (base64) {
         return app.api("uploadDriveFile", {
           fileType: "Fotos",

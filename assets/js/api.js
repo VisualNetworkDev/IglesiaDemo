@@ -210,25 +210,33 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyPw8KqHcbsu2iW9nNy9lS0
   }
 
   function optimizeImageFile(file, options) {
-    const config = Object.assign({ maxWidth: 1800, maxHeight: 1800, quality: 0.86 }, options || {});
+    const config = Object.assign({ maxWidth: 1800, maxHeight: 1800, quality: 0.86, type: "image/jpeg", extension: "jpg", exact: false }, options || {});
     if (!file || !/^image\//i.test(file.type || "")) return Promise.resolve(file);
     return new Promise(function (resolve, reject) {
       const image = new Image();
       const objectUrl = URL.createObjectURL(file);
       image.onload = function () {
         try {
-          let width = image.naturalWidth || image.width;
-          let height = image.naturalHeight || image.height;
-          const scale = Math.min(1, config.maxWidth / width, config.maxHeight / height);
-          width = Math.max(1, Math.round(width * scale));
-          height = Math.max(1, Math.round(height * scale));
+          const sourceWidth = image.naturalWidth || image.width;
+          const sourceHeight = image.naturalHeight || image.height;
+          const scale = config.exact ? Math.max(config.maxWidth / sourceWidth, config.maxHeight / sourceHeight) : Math.min(1, config.maxWidth / sourceWidth, config.maxHeight / sourceHeight);
+          const width = config.exact ? config.maxWidth : Math.max(1, Math.round(sourceWidth * scale));
+          const height = config.exact ? config.maxHeight : Math.max(1, Math.round(sourceHeight * scale));
           const canvas = document.createElement("canvas");
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext("2d", { alpha: false });
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = "high";
-          ctx.drawImage(image, 0, 0, width, height);
+          if (config.exact) {
+            const drawnWidth = Math.round(sourceWidth * scale);
+            const drawnHeight = Math.round(sourceHeight * scale);
+            const dx = Math.round((width - drawnWidth) / 2);
+            const dy = Math.round((height - drawnHeight) / 2);
+            ctx.drawImage(image, dx, dy, drawnWidth, drawnHeight);
+          } else {
+            ctx.drawImage(image, 0, 0, width, height);
+          }
           canvas.toBlob(function (blob) {
             URL.revokeObjectURL(objectUrl);
             if (!blob) {
@@ -236,10 +244,10 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyPw8KqHcbsu2iW9nNy9lS0
               return;
             }
             const baseName = file.name.replace(/\.[^.]+$/, "");
-            const optimized = new File([blob], baseName + ".jpg", { type: "image/jpeg", lastModified: Date.now() });
+            const optimized = new File([blob], baseName + "." + config.extension, { type: config.type, lastModified: Date.now() });
             optimized.originalSize = file.size;
             resolve(optimized.size < file.size ? optimized : file);
-          }, "image/jpeg", config.quality);
+          }, config.type, config.quality);
         } catch (error) {
           URL.revokeObjectURL(objectUrl);
           reject(error);
@@ -253,15 +261,23 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyPw8KqHcbsu2iW9nNy9lS0
     });
   }
 
-  function prepareUploadFile(file, fileType) {
+  function prepareUploadFile(file, fileType, options) {
     if (!file) return Promise.reject(new Error("Selecciona un archivo."));
     const isImage = /^image\//i.test(file.type || "");
     const isVideo = /^video\//i.test(file.type || "");
-    if (isImage) return optimizeImageFile(file);
+    if (isImage) return optimizeImageFile(file, Object.assign(imagePreset(fileType), options || {}));
     if (isVideo && file.size > 25 * 1024 * 1024) {
       return Promise.reject(new Error("El video es demasiado grande para subirlo desde esta app. Usa un video menor de 25 MB o comprimelo desde el telefono antes de subirlo."));
     }
     return Promise.resolve(file);
+  }
+
+  function imagePreset(fileType) {
+    const type = String(fileType || "").toLowerCase();
+    if (type === "qr") return { maxWidth: 1000, maxHeight: 1000, quality: 0.92 };
+    if (type === "public-photo") return { maxWidth: 1600, maxHeight: 900, quality: 0.86, exact: true };
+    if (type === "fotos" || type === "foto") return { maxWidth: 1600, maxHeight: 1200, quality: 0.86 };
+    return { maxWidth: 1800, maxHeight: 1800, quality: 0.86 };
   }
 
   window.ChurchFlowAPI = {

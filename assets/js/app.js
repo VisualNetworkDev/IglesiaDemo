@@ -28,6 +28,9 @@
     events: []
   };
 
+  const PUBLIC_CACHE_KEY = "churchflow_public_config_v2";
+  const PUBLIC_CACHE_TTL_MS = 10 * 60 * 1000;
+
   const fallbackPhotos = [
     "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=1200&q=80",
     "https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=1200&q=80",
@@ -174,20 +177,46 @@
   }
 
   function loadPublicConfig() {
+    const cached = readPublicCache();
+    if (cached) applyPublicPayload(cached, true);
     if (!ChurchFlowAPI.isConfigured()) {
-      renderPublicData();
+      if (!cached) renderPublicData();
       return;
     }
     ChurchFlowAPI.request("getPublicConfig", {})
       .then(function (result) {
-        state.publicConfig = Object.assign(state.publicConfig, result.data && result.data.config ? result.data.config : {});
-        state.ministries = Array.isArray(result.data && result.data.ministries) ? result.data.ministries : [];
-        state.events = Array.isArray(result.data && result.data.events) ? result.data.events : [];
-        renderPublicData();
+        const data = result.data || {};
+        writePublicCache(data);
+        applyPublicPayload(data, false);
       })
       .catch(function () {
-        renderPublicData();
+        if (!cached) renderPublicData();
       });
+  }
+
+  function applyPublicPayload(data) {
+    state.publicConfig = Object.assign(state.publicConfig, data && data.config ? data.config : {});
+    state.ministries = Array.isArray(data && data.ministries) ? data.ministries : [];
+    state.events = Array.isArray(data && data.events) ? data.events : [];
+    renderPublicData();
+  }
+
+  function readPublicCache() {
+    try {
+      const raw = localStorage.getItem(PUBLIC_CACHE_KEY);
+      if (!raw) return null;
+      const cached = JSON.parse(raw);
+      if (!cached || !cached.time || Date.now() - cached.time > PUBLIC_CACHE_TTL_MS) return null;
+      return cached.data || null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function writePublicCache(data) {
+    try {
+      localStorage.setItem(PUBLIC_CACHE_KEY, JSON.stringify({ time: Date.now(), data: data }));
+    } catch (error) {}
   }
 
   function renderPublicData() {

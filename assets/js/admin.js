@@ -391,13 +391,15 @@
   function preloadAdminData() {
     window.setTimeout(function () {
       const jobs = [];
+      const session = app.state.session || {};
+      const fullAccess = session.permissions && session.permissions.all === true;
       if (app.can("forms", "read")) jobs.push(["getRequests", { category: "", status: "" }]);
       if (app.can("records", "read")) jobs.push(["getRecords", { query: "", status: "" }]);
       if (app.can("finance", "read")) jobs.push(["getFinanceRecords", { query: "", type: "", status: "", from: "", to: "" }]);
-      if (app.can("events", "read")) jobs.push(["getEvents", { includeInactive: true }]);
-      if (app.can("ministries", "read")) jobs.push(["getMinistries", { includeHidden: true }]);
-      if (app.can("settings", "read")) jobs.push(["getSettings", {}]);
-      if (app.can("files", "read") || app.can("files", "write")) jobs.push(["getDriveFiles", { fileType: "" }]);
+      if (fullAccess && app.can("events", "read")) jobs.push(["getEvents", { includeInactive: true }]);
+      if (fullAccess && app.can("ministries", "read")) jobs.push(["getMinistries", { includeHidden: true }]);
+      if (fullAccess && app.can("settings", "read")) jobs.push(["getSettings", {}]);
+      if (fullAccess && (app.can("files", "read") || app.can("files", "write"))) jobs.push(["getDriveFiles", { fileType: "" }]);
       jobs.forEach(function (job) {
         app.api(job[0], job[1]).catch(function () {});
       });
