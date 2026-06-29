@@ -83,7 +83,7 @@
           fileName: prepared.name,
           mimeType: prepared.type || "application/octet-stream",
           base64: base64
-        }, { transport: "iframe", timeoutMs: 120000 });
+        }, { transport: "fetch", timeoutMs: 120000 });
       });
     }).then(function (result) {
       ChurchFlowAPI.setStatus(status, result.message || "Archivo reemplazado.", "success");
@@ -102,7 +102,7 @@
           fileName: prepared.name,
           mimeType: prepared.type || "application/octet-stream",
           base64: base64
-        }, { transport: "iframe", timeoutMs: 120000 });
+        }, { transport: "fetch", timeoutMs: 120000 });
       });
     });
   }

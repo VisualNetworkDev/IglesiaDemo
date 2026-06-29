@@ -116,7 +116,7 @@
           mimeType: prepared.type || "image/jpeg",
           publicAccess: true,
           base64: base64
-        }, { transport: "iframe", timeoutMs: 120000 }).then(function (result) { return result.data; });
+        }, { transport: "fetch", timeoutMs: 120000 }).then(function (result) { return result.data; });
       });
     });
   }

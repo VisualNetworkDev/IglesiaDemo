@@ -138,7 +138,7 @@
         return item.dayLabel + " " + item.startTime + (item.endTime ? " - " + item.endTime : "");
       }).join("; ");
       ChurchFlowAPI.setStatus(status, "Guardando...", "");
-      return app.api("updateSettings", { settings: ChurchFlowAPI.formToPayload(form) }, { transport: "iframe", timeoutMs: 120000 });
+      return app.api("updateSettings", { settings: ChurchFlowAPI.formToPayload(form) }, { transport: "fetch", timeoutMs: 120000 });
     }).then(function (result) {
       ChurchFlowAPI.setStatus(status, result.message || "Configuracion guardada.", "success");
       loadSettings();
@@ -161,7 +161,7 @@
           mimeType: prepared.type || "image/jpeg",
           publicAccess: true,
           base64: base64
-        }, { transport: "iframe", timeoutMs: 120000 }).then(function (result) { return result.data; });
+        }, { transport: "fetch", timeoutMs: 120000 }).then(function (result) { return result.data; });
       });
     });
   }
