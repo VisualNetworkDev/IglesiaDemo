@@ -11,8 +11,8 @@
       vision: "Ser una iglesia cercana, saludable y activa, donde cada persona encuentre cuidado espiritual, comunidad y oportunidades reales para servir.",
       history: "Nacimos como una comunidad local de fe con puertas abiertas para adorar, escuchar, acompañar y responder a las necesidades de la ciudad.",
       pastorName: "El equipo pastoral acompaña a la iglesia con enseñanza biblica, cuidado espiritual y seguimiento cercano a las familias.",
-      serviceTimes: "Domingo 10:00 AM - 12:00 PM; Miercoles 7:30 PM - 9:00 PM",
-      address: "Direccion por configurar",
+      serviceTimes: "Domingo 10:00 AM - 12:00 PM; Miércoles 7:30 PM - 9:00 PM",
+      address: "Dirección por configurar",
       phone: "",
       email: "",
       cashAppInstructions: "Consulta las instrucciones vigentes con el equipo de tesoreria.",
@@ -36,6 +36,7 @@
   document.addEventListener("DOMContentLoaded", function () {
     initAppNavigation();
     initRequestTabs();
+    initMinistrySliderControls();
     bindLiveButtons();
     ChurchFlowForms.init();
     loadPublicConfig();
@@ -62,6 +63,23 @@
         setActiveRequest(button.getAttribute("data-request-tab"));
       });
     });
+  }
+
+  function initMinistrySliderControls() {
+    const prev = document.querySelector("[data-ministry-prev]");
+    const next = document.querySelector("[data-ministry-next]");
+    if (prev) prev.addEventListener("click", function () { moveMinistrySlider(-1); });
+    if (next) next.addEventListener("click", function () { moveMinistrySlider(1); });
+    const slider = document.getElementById("ministriesGrid");
+    if (slider) slider.addEventListener("scroll", updateMinistryDots);
+  }
+
+  function moveMinistrySlider(direction) {
+    const slider = document.getElementById("ministriesGrid");
+    const card = slider && slider.querySelector(".ministry-slide");
+    if (!slider || !card) return;
+    const amount = card.getBoundingClientRect().width + 14;
+    slider.scrollBy({ left: amount * direction, behavior: "smooth" });
   }
 
   function setActiveView(viewName) {
@@ -126,7 +144,7 @@
     setText("cashInstructions", state.publicConfig.cashInstructions);
     setText("checkInstructions", state.publicConfig.checkInstructions);
     setText("footerAddress", state.publicConfig.address);
-    setText("footerContact", [state.publicConfig.email, state.publicConfig.phone].filter(Boolean).join(" · ") || "Email y telefono por configurar");
+    setText("footerContact", [state.publicConfig.email, state.publicConfig.phone].filter(Boolean).join(" · ") || "Email y teléfono por configurar");
     renderLiveState();
     renderMinistries();
     renderEvents();
@@ -147,19 +165,48 @@
 
   function renderMinistries() {
     const grid = document.getElementById("ministriesGrid");
+    const dots = document.getElementById("ministryDots");
     if (!grid) return;
     const ministries = state.ministries.filter(function (item) { return item.visible !== false && item.visible !== "false"; });
     if (!ministries.length) {
       grid.innerHTML = '<div class="empty-state">Los ministerios apareceran aqui cuando esten disponibles.</div>';
+      if (dots) dots.innerHTML = "";
       return;
     }
     grid.innerHTML = ministries.map(function (item, index) {
-      return '<article class="card">' +
+      return '<article class="ministry-slide">' +
         '<img src="' + escapeAttr(item.photoUrl || fallbackPhotos[index % fallbackPhotos.length]) + '" alt="">' +
-        '<h3>' + escapeHtml(item.name || "Ministerio") + '</h3>' +
-        '<p>' + escapeHtml(item.description || "") + '</p>' +
+        '<div><h3>' + escapeHtml(item.name || "Ministerio") + '</h3>' +
+        '<p>' + escapeHtml(item.description || "") + '</p></div>' +
         '</article>';
     }).join("");
+    if (dots) {
+      dots.innerHTML = ministries.map(function (_, index) {
+        return '<button type="button" data-ministry-dot="' + index + '" aria-label="Ver ministerio ' + (index + 1) + '"></button>';
+      }).join("");
+      dots.querySelectorAll("[data-ministry-dot]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          const target = grid.querySelectorAll(".ministry-slide")[Number(button.dataset.ministryDot)];
+          if (target) target.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
+        });
+      });
+    }
+    updateMinistryDots();
+  }
+
+  function updateMinistryDots() {
+    const slider = document.getElementById("ministriesGrid");
+    const dots = document.getElementById("ministryDots");
+    if (!slider || !dots) return;
+    const slides = Array.from(slider.querySelectorAll(".ministry-slide"));
+    if (!slides.length) return;
+    const index = slides.reduce(function (best, slide, current) {
+      const distance = Math.abs(slide.offsetLeft - slider.scrollLeft);
+      return distance < best.distance ? { index: current, distance: distance } : best;
+    }, { index: 0, distance: Infinity }).index;
+    dots.querySelectorAll("button").forEach(function (button, current) {
+      button.classList.toggle("active", current === index);
+    });
   }
 
   function renderEvents() {

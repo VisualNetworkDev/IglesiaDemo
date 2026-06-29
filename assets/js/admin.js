@@ -5,7 +5,7 @@
 
   const moduleMeta = {
     dashboard: ["Dashboard", "Resumen operativo"],
-    records: ["Registro local", "Personas, hogares y estados"],
+    records: ["Registro de Miembros", "Personas, hogares y estado espiritual"],
     requests: ["Formularios / Solicitudes", "Seguimiento pastoral y administrativo"],
     finance: ["Finanzas", "Contribuciones, ayudas y verificaciones"],
     reports: ["Reportes", "PDF y CSV bajo demanda"],
@@ -33,6 +33,10 @@
 
   app.setContent = function (html) {
     document.getElementById("moduleContent").innerHTML = html;
+    if (app.state.initialAdminLoad && String(html).indexOf("Cargando") === -1) {
+      app.state.initialAdminLoad = false;
+      hideAdminLoading();
+    }
   };
 
   app.renderTable = function (rows, columns, actionBuilder) {
@@ -51,6 +55,10 @@
   };
 
   app.showError = function (error) {
+    if (app.state.initialAdminLoad) {
+      app.state.initialAdminLoad = false;
+      hideAdminLoading();
+    }
     showAlert(error && error.message ? error.message : String(error), "error");
   };
 
@@ -71,7 +79,7 @@
             stat("Solicitudes pendientes", data.pendingRequests || 0) +
             stat("Contribuciones reportadas", data.reportedContributions || 0) +
             stat("Por verificar", data.pendingContributions || 0) +
-            stat("Registros activos", data.activeRecords || 0) +
+            stat("Miembros activos", data.activeRecords || 0) +
             stat("Proximos eventos", data.upcomingEvents || 0) +
             stat("Alertas", (data.alerts || []).length) +
             stat("Año activo", data.activeYear || "") +
@@ -79,7 +87,7 @@
           '<section class="panel"><h2>Accesos rapidos</h2><div class="form-actions">' +
             quick("requests", "Ver solicitudes") +
             quick("finance", "Ver finanzas") +
-            quick("records", "Buscar registro") +
+            quick("records", "Buscar miembro") +
             quick("reports", "Generar reportes") +
           '</div></section>' +
           '<section class="panel"><h2>Alertas importantes</h2>' +
@@ -154,9 +162,13 @@
       event.preventDefault();
       const status = document.getElementById("loginStatus");
       ChurchFlowAPI.setStatus(status, "Validando acceso...", "");
+      showAdminLoading();
       app.login(event.currentTarget.elements.username.value, event.currentTarget.elements.password.value)
         .then(showAdmin)
-        .catch(function (error) { ChurchFlowAPI.setStatus(status, error.message, "error"); });
+        .catch(function (error) {
+          hideAdminLoading();
+          ChurchFlowAPI.setStatus(status, error.message, "error");
+        });
     });
     document.getElementById("logoutButton").addEventListener("click", function () {
       app.logout().then(showLogin);
@@ -177,16 +189,29 @@
       const quickButton = event.target.closest("[data-quick-module]");
       if (quickButton) setModule(quickButton.dataset.quickModule);
     });
+    document.addEventListener("click", function (event) {
+      const button = event.target.closest("[data-toggle-password]");
+      if (!button) return;
+      const wrapper = button.closest(".password-field");
+      const input = wrapper && wrapper.querySelector("input");
+      if (!input) return;
+      const show = input.type === "password";
+      input.type = show ? "text" : "password";
+      button.textContent = show ? "Ocultar" : "Ver";
+      button.setAttribute("aria-label", show ? "Ocultar contraseña" : "Mostrar contraseña");
+    });
   }
 
   function showLogin() {
-    document.getElementById("adminLoadingView").classList.add("hidden");
+    app.state.initialAdminLoad = false;
+    hideAdminLoading();
     document.getElementById("loginView").classList.remove("hidden");
     document.getElementById("adminShell").classList.add("hidden");
   }
 
   function showAdmin() {
-    document.getElementById("adminLoadingView").classList.add("hidden");
+    app.state.initialAdminLoad = true;
+    showAdminLoading();
     document.getElementById("loginView").classList.add("hidden");
     document.getElementById("adminShell").classList.remove("hidden");
     const session = app.state.session || {};
@@ -194,6 +219,14 @@
     document.getElementById("adminUserLabel").textContent = [user.name || user.username, user.roleName].filter(Boolean).join(" · ");
     applyNavPermissions();
     setModule(app.state.currentModule || "dashboard");
+  }
+
+  function showAdminLoading() {
+    document.getElementById("adminLoadingView").classList.remove("hidden");
+  }
+
+  function hideAdminLoading() {
+    document.getElementById("adminLoadingView").classList.add("hidden");
   }
 
   function applyNavPermissions() {

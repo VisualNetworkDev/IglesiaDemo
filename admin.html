@@ -25,7 +25,12 @@
       <h1>ChurchFlow Admin</h1>
       <p>Acceso administrativo seguro</p>
       <label>Usuario o email<input name="username" autocomplete="username" required></label>
-      <label>Contrasena<input name="password" type="password" autocomplete="current-password" required></label>
+      <label>Contraseña
+        <span class="password-field">
+          <input name="password" type="password" autocomplete="current-password" required>
+          <button type="button" class="password-toggle" data-toggle-password aria-label="Mostrar contraseña">Ver</button>
+        </span>
+      </label>
       <button type="submit" class="button primary">Entrar</button>
       <p id="loginStatus" class="status" role="status"></p>
     </form>
@@ -42,7 +47,7 @@
       </div>
       <nav class="admin-nav" id="adminNav">
         <button type="button" data-module="dashboard">Dashboard</button>
-        <button type="button" data-module="records">Registro local</button>
+        <button type="button" data-module="records">Registro de Miembros</button>
         <button type="button" data-module="requests">Formularios / Solicitudes</button>
         <button type="button" data-module="finance">Finanzas</button>
         <button type="button" data-module="reports">Reportes</button>

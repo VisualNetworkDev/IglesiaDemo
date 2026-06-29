@@ -6,7 +6,7 @@
     ["sunday", "Domingo"],
     ["monday", "Lunes"],
     ["tuesday", "Martes"],
-    ["wednesday", "Miercoles"],
+    ["wednesday", "Miércoles"],
     ["thursday", "Jueves"],
     ["friday", "Viernes"],
     ["saturday", "Sabado"]
@@ -14,7 +14,7 @@
 
   app.registerModule("settings", {
     title: "Configuracion",
-    subtitle: "Datos publicos, horarios, transmision y contribuciones",
+    subtitle: "Datos públicos, horarios, transmisión y contribuciones",
     render: function () {
       app.requireAccess("settings", "read");
       app.setContent(
@@ -31,8 +31,8 @@
               field("phone", "Telefono", "text") +
               field("email", "Email publico", "email") +
               field("adminEmail", "Correo de notificaciones", "email") +
-              field("liveUrl", "Enlace directo de transmision", "url") +
-              '<label>Transmision en vivo<select name="liveIsActive"><option value="false">No activa</option><option value="true">Ahora en vivo</option></select></label>' +
+              field("liveUrl", "Enlace directo de transmisión", "url") +
+              '<label>Estado actual de transmisión<select name="liveIsActive"><option value="false">No activa</option><option value="true">Ahora en vivo</option></select></label>' +
               field("activeYear", "Año activo", "number") +
               field("receiptLegalText", "Texto legal de recibos", "text") +
               '<label>Mostrar ministerios<select name="showMinistries"><option value="true">Si</option><option value="false">No</option></select></label>' +
@@ -72,7 +72,7 @@
 
   app.registerModule("users", {
     title: "Usuarios y roles",
-    subtitle: "Usuarios demo, roles y acceso",
+    subtitle: "Usuarios, roles y acceso",
     render: function () {
       app.requireAccess("users", "read");
       app.setContent(
@@ -85,7 +85,7 @@
               field("email", "Email", "email") +
               field("username", "Usuario", "text") +
               '<label>Rol<select name="roleId" id="userRoleSelect"></select></label>' +
-              '<label>Contrasena<input name="password" type="text" placeholder="Solo para crear o resetear"></label>' +
+              passwordField("password", "Contraseña", "Solo para crear o resetear") +
               '<label>Activo<select name="active"><option value="true">Si</option><option value="false">No</option></select></label>' +
             '</div>' +
             '<div class="form-actions">' +
@@ -96,8 +96,8 @@
           '</form>' +
         '</section>' +
         '<section class="panel">' +
-          '<h2>Usuarios demo</h2>' +
-          '<p class="muted-copy">Puedes editar, resetear contrasena, desactivar o borrar usuarios demo antes de entregar el sistema.</p>' +
+          '<h2>Usuarios</h2>' +
+          '<p class="muted-copy">Puedes editar, resetear contraseña, desactivar o borrar usuarios antes de entregar el sistema.</p>' +
           '<div id="usersTable"></div>' +
         '</section>'
       );
@@ -188,7 +188,7 @@
     let schedule = [];
     try { schedule = JSON.parse(json || "[]"); } catch (error) { schedule = []; }
     if (!schedule.length && fallbackText) {
-      schedule = [{ day: "sunday", dayLabel: "Domingo", startTime: "10:00 AM", endTime: "" }, { day: "wednesday", dayLabel: "Miercoles", startTime: "7:30 PM", endTime: "" }];
+      schedule = [{ day: "sunday", dayLabel: "Domingo", startTime: "10:00 AM", endTime: "" }, { day: "wednesday", dayLabel: "Miércoles", startTime: "7:30 PM", endTime: "" }];
     }
     schedule.forEach(function (item) {
       const row = document.querySelector('[data-day="' + item.day + '"]');
@@ -230,6 +230,7 @@
     app.api("getSettings", { includeUsers: true }).then(function (result) {
       const roles = result.data.roles || [];
       const users = result.data.users || [];
+      app.state.canViewUserPasswords = result.data.canViewPasswords === true;
       app.state.rolesById = {};
       roles.forEach(function (role) { app.state.rolesById[role.id] = role.name; });
       const select = document.getElementById("userRoleSelect");
@@ -244,9 +245,14 @@
         ["roleId", "Rol", function (value) { return app.escapeHtml(app.state.rolesById[value] || value); }],
         ["active", "Activo", app.badge]
       ], function (_, index) {
+        const row = users[index] || {};
+        const isActive = row.active === true || row.active === "true";
+        const toggleClass = isActive ? "active-state" : "inactive-state";
+        const toggleLabel = isActive ? "Activo - desactivar" : "Desactivado - activar";
         return '<button type="button" class="button" data-edit="' + index + '">Editar</button>' +
           '<button type="button" class="button" data-reset="' + index + '">Resetear</button>' +
-          '<button type="button" class="button warning" data-toggle="' + index + '">Activar/desactivar</button>' +
+          (app.state.canViewUserPasswords ? '<button type="button" class="button" data-viewpass="' + index + '">Ver contraseña</button>' : '') +
+          '<button type="button" class="button ' + toggleClass + '" data-toggle="' + index + '">' + toggleLabel + '</button>' +
           '<button type="button" class="button danger" data-remove="' + index + '">Borrar</button>';
       });
     }).catch(app.showError);
@@ -259,7 +265,7 @@
     const status = document.getElementById("userStatus");
     const action = user.id ? "updateAdminUser" : "createAdminUser";
     if (!user.id && !user.password) {
-      ChurchFlowAPI.setStatus(status, "Indica una contrasena para crear el usuario.", "error");
+      ChurchFlowAPI.setStatus(status, "Indica una contraseña para crear el usuario.", "error");
       return;
     }
     ChurchFlowAPI.setStatus(status, "Guardando usuario...", "");
@@ -276,12 +282,16 @@
     const button = event.target.closest("button");
     if (!button) return;
     const rows = app.state.usersRows || [];
-    const index = Number(button.dataset.edit || button.dataset.reset || button.dataset.toggle || button.dataset.remove);
+    const index = Number(button.dataset.edit || button.dataset.reset || button.dataset.toggle || button.dataset.remove || button.dataset.viewpass);
     const row = rows[index];
     if (!row) return;
     if (button.dataset.edit !== undefined) return fillUserForm(row);
+    if (button.dataset.viewpass !== undefined) {
+      prompt("Contraseña guardada para " + (row.name || row.username), row.visiblePassword || "No hay contraseña visible guardada. Resetea la contraseña para guardarla.");
+      return;
+    }
     if (button.dataset.reset !== undefined) {
-      const password = prompt("Nueva contrasena corta para demo", "1234");
+      const password = prompt("Nueva contraseña corta", "1234");
       if (password) return runUserAction("resetAdminPassword", { userId: row.id, password: password });
     }
     if (button.dataset.toggle !== undefined) {
@@ -318,6 +328,12 @@
 
   function field(name, label, type) {
     return '<label>' + label + '<input name="' + name + '" type="' + type + '"></label>';
+  }
+
+  function passwordField(name, label, placeholder) {
+    return '<label>' + label +
+      '<span class="password-field"><input name="' + name + '" type="password" placeholder="' + app.escapeAttr(placeholder || "") + '">' +
+      '<button type="button" class="password-toggle" data-toggle-password aria-label="Mostrar contraseña">Ver</button></span></label>';
   }
 
   function range(start, end) {

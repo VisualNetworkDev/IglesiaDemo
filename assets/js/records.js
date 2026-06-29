@@ -4,13 +4,13 @@
   const app = window.ChurchFlowAdmin;
 
   app.registerModule("records", {
-    title: "Registro local",
-    subtitle: "Personas, hogares, estados e historial autorizado",
+    title: "Registro de Miembros",
+    subtitle: "Personas, hogares, membresía, bautismo e historial autorizado",
     render: function () {
       app.requireAccess("records", "read");
       app.setContent(
         '<section class="panel">' +
-          '<h2>Agregar o editar registro</h2>' +
+          '<h2>Agregar o editar miembro</h2>' +
           '<form id="recordForm">' +
             '<input type="hidden" name="id">' +
             '<div class="form-grid">' +
@@ -23,11 +23,15 @@
               field("address", "Direccion", "text", false) +
               field("joinDate", "Fecha de ingreso", "date", false) +
               field("birthDate", "Fecha de nacimiento", "date", false) +
+              select("membershipStatus", "Membresía", ["Miembro de la iglesia", "Asistente", "Visitante", "No miembro"]) +
+              select("baptismStatus", "Bautismo", ["Bautizado", "No bautizado", "Por confirmar"]) +
+              field("membershipDate", "Fecha de Membresía", "date", false) +
+              field("baptismDate", "Fecha de Bautizo", "date", false) +
               field("ministryRole", "Ministerio / cargo", "text", false) +
               '<label class="full">Notas privadas<textarea name="privateNotes" rows="3"></textarea></label>' +
             '</div>' +
             '<div class="form-actions">' +
-              '<button type="submit" class="button primary">Guardar registro</button>' +
+              '<button type="submit" class="button primary">Guardar miembro</button>' +
               '<button type="button" class="button" id="resetRecordForm">Limpiar</button>' +
             '</div>' +
             '<p class="status" id="recordStatus" role="status"></p>' +
@@ -103,6 +107,8 @@
       ["lastName", "Apellido"],
       ["firstName", "Nombre"],
       ["status", "Estado", app.badge],
+      ["membershipStatus", "Membresía", app.badge],
+      ["baptismStatus", "Bautismo", app.badge],
       ["phone", "Telefono"],
       ["email", "Email"],
       ["ministryRole", "Ministerio / cargo"]

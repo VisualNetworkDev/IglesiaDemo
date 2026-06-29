@@ -28,6 +28,9 @@ textarea { font: inherit; }
 .hidden { display: none !important; }
 
 .admin-loading-view {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
   min-height: 100vh;
   display: grid;
   place-items: center;
@@ -134,6 +137,28 @@ textarea {
 
 textarea { resize: vertical; }
 
+.password-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.password-field input {
+  min-width: 0;
+}
+
+.password-toggle {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #f8fbfb;
+  color: var(--accent-dark);
+  font-weight: 900;
+  cursor: pointer;
+}
+
 .button,
 .icon-button {
   min-height: 42px;
@@ -151,6 +176,8 @@ textarea { resize: vertical; }
 .button.danger { color: #fff; background: var(--danger); border-color: var(--danger); }
 .button.warning { color: #fff; background: var(--warning); border-color: var(--warning); }
 .button.ok { color: #fff; background: var(--ok); border-color: var(--ok); }
+.button.active-state { color: #fff; background: var(--ok); border-color: var(--ok); }
+.button.inactive-state { color: #fff; background: var(--warning); border-color: var(--warning); }
 
 .admin-shell {
   min-height: 100vh;

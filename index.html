@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Iglesia Nueva Esperanza</title>
-  <meta name="description" content="Aplicacion publica de una iglesia local con solicitudes, eventos, ministerios, contacto y contribuciones manuales.">
+  <meta name="description" content="Aplicación pública de una iglesia local con solicitudes, eventos, ministerios, contacto y contribuciones manuales.">
   <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body class="church-app">
@@ -46,68 +46,83 @@
               <strong>Ver eventos</strong>
             </button>
             <button type="button" class="action-card live-only" data-open-live hidden>
-              <span>Transmision</span>
+              <span>Transmisión</span>
               <strong>Ahora En Vivo</strong>
             </button>
           </div>
         </article>
 
-        <section class="summary-panel">
-          <div>
-            <p class="eyebrow">Horarios</p>
-            <h2>Servicios</h2>
-            <p id="serviceTimes">Domingo 10:00 AM · Miercoles 7:30 PM</p>
-          </div>
-          <div>
-            <p class="eyebrow">Contacto</p>
-            <h2>Ubicacion</h2>
-            <p id="footerAddress">Direccion por configurar</p>
-            <p id="footerContact">Email y telefono por configurar</p>
-          </div>
+        <section class="home-side">
+          <article class="home-story">
+            <p class="eyebrow">Sobre la iglesia</p>
+            <h2>Una casa para crecer y servir</h2>
+            <div class="story-grid">
+              <div>
+                <h3>Misión</h3>
+                <p id="missionText">Guiar a las personas a conocer a Cristo, fortalecer familias y servir con compasion.</p>
+              </div>
+              <div>
+                <h3>Visión</h3>
+                <p id="visionText">Ser una iglesia saludable, cercana y comprometida con transformar vidas por medio del evangelio.</p>
+              </div>
+              <div>
+                <h3>Historia</h3>
+                <p id="historyText">Nacimos como una comunidad de fe local con el deseo de abrir puertas, escuchar necesidades y caminar junto a cada persona.</p>
+              </div>
+              <div>
+                <h3>Pastores</h3>
+                <p id="pastorText">Información pastoral disponible próximamente.</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="service-card">
+            <span class="service-icon" aria-hidden="true"></span>
+            <div>
+              <p class="eyebrow">Servicios</p>
+              <h2>Horarios principales</h2>
+              <p id="serviceTimes">Domingo 10:00 AM - 12:00 PM; Miércoles 7:30 PM - 9:00 PM</p>
+            </div>
+          </article>
+
+          <article class="location-card">
+            <div>
+              <p class="eyebrow">Ubicación y contacto</p>
+              <h2>Visitanos</h2>
+              <p id="footerAddress">Dirección por configurar</p>
+              <p id="footerContact">Email y teléfono por configurar</p>
+            </div>
+            <button type="button" class="button" data-open-request="newVisitor">Planear visita</button>
+          </article>
         </section>
       </div>
     </section>
 
     <section class="app-screen" data-screen="church" aria-label="Iglesia">
-      <div class="screen-scroll two-column">
-        <section class="panel">
-          <p class="eyebrow">Nuestra casa</p>
-          <h2>Sobre la iglesia</h2>
-          <div class="info-list">
-            <article>
-              <h3>Mision</h3>
-              <p id="missionText">Guiar a las personas a conocer a Cristo, fortalecer familias y servir con compasion.</p>
-            </article>
-            <article>
-              <h3>Vision</h3>
-              <p id="visionText">Ser una iglesia saludable, cercana y comprometida con transformar vidas por medio del evangelio.</p>
-            </article>
-            <article>
-              <h3>Historia</h3>
-              <p id="historyText">Nacimos como una comunidad de fe local con el deseo de abrir puertas, escuchar necesidades y caminar junto a cada persona.</p>
-            </article>
-            <article>
-              <h3>Pastor principal</h3>
-              <p id="pastorText">Informacion pastoral disponible proximamente.</p>
-            </article>
+      <div class="screen-scroll ministries-screen">
+        <section class="ministries-hero">
+          <div>
+            <p class="eyebrow">Servimos juntos</p>
+            <h2>Ministerios</h2>
+            <p>Explora las areas de servicio y crecimiento disponibles en la iglesia.</p>
+          </div>
+          <div class="slider-actions" aria-label="Controles de ministerios">
+            <button type="button" class="icon-arrow" data-ministry-prev aria-label="Ministerio anterior">&lsaquo;</button>
+            <button type="button" class="icon-arrow" data-ministry-next aria-label="Ministerio siguiente">&rsaquo;</button>
           </div>
         </section>
-
-        <section class="panel">
-          <p class="eyebrow">Servimos juntos</p>
-          <h2>Ministerios</h2>
-          <div id="ministriesGrid" class="ministry-list" aria-live="polite"></div>
-        </section>
+        <div id="ministriesGrid" class="ministry-slider" aria-live="polite"></div>
+        <div id="ministryDots" class="slider-dots" aria-label="Paginacion de ministerios"></div>
       </div>
     </section>
 
     <section class="app-screen" data-screen="agenda" aria-label="Agenda">
       <div class="screen-scroll two-column">
         <section class="panel live-panel live-only" hidden>
-          <p class="eyebrow">Transmision</p>
+          <p class="eyebrow">Transmisión</p>
           <h2>Ahora En Vivo</h2>
-          <p>La transmision esta disponible en el enlace oficial de la iglesia.</p>
-          <button type="button" class="button primary" data-open-live>Abrir transmision</button>
+          <p>La transmisión está disponible en el enlace oficial de la iglesia.</p>
+          <button type="button" class="button primary" data-open-live>Abrir transmisión</button>
         </section>
         <section class="panel wide-panel">
           <p class="eyebrow">Agenda</p>
@@ -128,7 +143,7 @@
             <button type="button" data-request-tab="pastoralVisit">Visita</button>
             <button type="button" data-request-tab="counseling">Consejeria</button>
             <button type="button" data-request-tab="assistance">Asistencia</button>
-            <button type="button" data-request-tab="prayer">Oracion</button>
+            <button type="button" data-request-tab="prayer">Oración</button>
             <button type="button" data-request-tab="contact">Contacto</button>
             <button type="button" data-request-tab="contribution">Contribucion</button>
           </div>
@@ -144,7 +159,7 @@
             <div class="form-grid">
               <label>Nombre<input name="name" required autocomplete="name"></label>
               <label>Email<input name="email" type="email" autocomplete="email"></label>
-              <label>Telefono<input name="phone" autocomplete="tel"></label>
+              <label>Teléfono<input name="phone" autocomplete="tel"></label>
               <label>Me interesa
                 <select name="interest">
                   <option>Recibir una llamada</option>
@@ -173,8 +188,8 @@
             <div class="form-grid">
               <label>Nombre<input name="name" required autocomplete="name"></label>
               <label>Email<input name="email" type="email" autocomplete="email"></label>
-              <label>Telefono<input name="phone" required autocomplete="tel"></label>
-              <label>Direccion<input name="address" required autocomplete="street-address"></label>
+              <label>Teléfono<input name="phone" required autocomplete="tel"></label>
+              <label>Dirección<input name="address" required autocomplete="street-address"></label>
               <label>Disponibilidad<input name="availability"></label>
               <label class="full">Motivo<textarea name="message" rows="4" required></textarea></label>
             </div>
@@ -196,7 +211,7 @@
             <div class="form-grid">
               <label>Nombre<input name="name" required autocomplete="name"></label>
               <label>Email<input name="email" type="email" autocomplete="email"></label>
-              <label>Telefono<input name="phone" autocomplete="tel"></label>
+              <label>Teléfono<input name="phone" autocomplete="tel"></label>
               <label>Disponibilidad<input name="availability" placeholder="Dias y horas preferidas"></label>
               <label class="full">Motivo<textarea name="message" rows="4" required></textarea></label>
             </div>
@@ -218,7 +233,7 @@
             <div class="form-grid">
               <label>Nombre<input name="name" required autocomplete="name"></label>
               <label>Email<input name="email" type="email" autocomplete="email"></label>
-              <label>Telefono<input name="phone" autocomplete="tel"></label>
+              <label>Teléfono<input name="phone" autocomplete="tel"></label>
               <label>Tipo de ayuda<input name="assistanceType" required></label>
               <label class="full">Descripcion<textarea name="message" rows="4" required></textarea></label>
             </div>
@@ -240,7 +255,7 @@
             <div class="form-grid">
               <label>Nombre<input name="name" required autocomplete="name"></label>
               <label>Email<input name="email" type="email" autocomplete="email"></label>
-              <label>Telefono<input name="phone" autocomplete="tel"></label>
+              <label>Teléfono<input name="phone" autocomplete="tel"></label>
               <label>Privacidad
                 <select name="privacy">
                   <option value="Pastoral">Solo equipo pastoral</option>
@@ -267,7 +282,7 @@
             <div class="form-grid">
               <label>Nombre<input name="name" required autocomplete="name"></label>
               <label>Email<input name="email" type="email" required autocomplete="email"></label>
-              <label>Telefono<input name="phone" autocomplete="tel"></label>
+              <label>Teléfono<input name="phone" autocomplete="tel"></label>
               <label>Asunto<input name="subject" required></label>
               <label class="full">Mensaje<textarea name="message" rows="4" required></textarea></label>
             </div>
@@ -283,18 +298,18 @@
           <form class="request-card" data-request-form="contribution" data-api-form data-action="reportContribution">
             <div class="form-head">
               <span>7 de 7</span>
-              <h3>Reportar contribucion enviada</h3>
+              <h3>Reportar contribución enviada</h3>
               <p>Este reporte no procesa cobros. Ayuda a confirmar un aporte enviado por metodos manuales.</p>
             </div>
             <div class="form-grid">
               <label>Nombre completo<input name="name" required autocomplete="name"></label>
               <label>Email<input name="email" type="email" autocomplete="email"></label>
-              <label>Telefono<input name="phone" autocomplete="tel"></label>
+              <label>Teléfono<input name="phone" autocomplete="tel"></label>
               <label>Tipo
                 <select name="type" required>
                   <option value="diezmo">Diezmo</option>
                   <option value="ofrenda">Ofrenda</option>
-                  <option value="donacion">Donacion</option>
+                  <option value="donacion">Donación</option>
                 </select>
               </label>
               <label>Monto<input name="amount" type="number" min="0.01" step="0.01" required></label>
@@ -315,7 +330,7 @@
               <input name="communicationConsent" type="checkbox" value="accepted" required>
               <span>Autorizo a la iglesia a comunicarse conmigo sobre este reporte por llamada, texto o email. Entiendo que tesoreria revisara la informacion con discrecion.</span>
             </label>
-            <input type="hidden" name="communicationConsentText" value="Consentimiento para comunicaciones sobre reporte de contribucion por llamada, texto o email.">
+            <input type="hidden" name="communicationConsentText" value="Consentimiento para comunicaciones sobre reporte de contribución por llamada, texto o email.">
             <button type="submit" class="button primary">Enviar reporte</button>
             <p class="form-status" role="status"></p>
           </form>
@@ -327,7 +342,7 @@
       <div class="screen-scroll giving-layout">
         <section class="panel">
           <h2>Diezmos y donaciones</h2>
-          <p>Las contribuciones se reciben por metodos manuales. Revisa las instrucciones y luego reporta el aporte enviado si necesitas confirmacion.</p>
+          <p>Las contribuciones se reciben por métodos manuales. Revisa las instrucciones y luego reporta el aporte enviado si necesitas confirmación.</p>
           <div class="giving-list">
             <article>
               <h3>Cash App</h3>
@@ -348,7 +363,7 @@
               <p id="checkInstructions">Consulta con tesoreria antes de enviar un check u otro metodo.</p>
             </article>
           </div>
-          <button type="button" class="button primary" data-open-request="contribution">Reportar contribucion enviada</button>
+          <button type="button" class="button primary" data-open-request="contribution">Reportar contribución enviada</button>
         </section>
       </div>
     </section>
