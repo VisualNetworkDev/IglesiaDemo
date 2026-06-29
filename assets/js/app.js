@@ -150,6 +150,7 @@
     const drag = { active: false, locked: false, startX: 0, startY: 0, startLeft: 0, moved: false };
     slider.addEventListener("pointerdown", function (event) {
       if (event.button !== 0) return;
+      if (event.pointerType === "touch") return;
       drag.active = true;
       drag.locked = false;
       drag.startX = event.clientX;
@@ -344,7 +345,7 @@
     }
     grid.innerHTML = ministries.map(function (item, index) {
       return '<article class="ministry-slide" role="button" tabindex="0" data-ministry-detail="' + index + '">' +
-        '<img loading="lazy" src="' + escapeAttr(item.photoUrl || fallbackPhotos[index % fallbackPhotos.length]) + '" alt="">' +
+        '<img loading="eager" decoding="async" src="' + escapeAttr(item.photoUrl || fallbackPhotos[index % fallbackPhotos.length]) + '" alt="">' +
         '<div><h3>' + escapeHtml(item.name || "Ministerio") + '</h3>' +
         '<p>' + escapeHtml(item.description || "") + '</p></div>' +
         '</article>';

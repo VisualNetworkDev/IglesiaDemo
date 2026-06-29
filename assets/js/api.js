@@ -275,7 +275,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyPw8KqHcbsu2iW9nNy9lS0
   function imagePreset(fileType) {
     const type = String(fileType || "").toLowerCase();
     if (type === "qr") return { maxWidth: 1000, maxHeight: 1000, quality: 0.92 };
-    if (type === "public-photo") return { maxWidth: 1600, maxHeight: 900, quality: 0.86, exact: true };
+    if (type === "public-photo") return { maxWidth: 1600, maxHeight: 1200, quality: 0.88, exact: false };
     if (type === "fotos" || type === "foto") return { maxWidth: 1600, maxHeight: 1200, quality: 0.86 };
     return { maxWidth: 1800, maxHeight: 1800, quality: 0.86 };
   }

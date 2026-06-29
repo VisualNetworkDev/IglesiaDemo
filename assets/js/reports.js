@@ -20,11 +20,11 @@
             '<button type="button" class="button" data-report="recordPdf">Generar registro de la iglesia local</button>' +
             '<button type="button" class="button" data-report="financialPdf">Generar historial financiero de una persona</button>' +
             '<button type="button" class="button" data-report="yearStatement">Generar resumen anual</button>' +
-            '<button type="button" class="button" data-report="bulkStatements">Generar recibos anuales pendientes (hasta 10)</button>' +
+            '<button type="button" class="button" data-report="bulkStatements">Generar siguiente grupo de recibos anuales pendientes (hasta 10)</button>' +
             '<button type="button" class="button" data-report="retryBulk">Reintentar recibos anuales fallidos</button>' +
             '<button type="button" class="button" data-report="auditPdf">Generar reporte de auditoria</button>' +
           '</div>' +
-          '<p class="muted-copy">Los recibos anuales pendientes se crean para personas con contribuciones verificadas que aun no tienen recibo del ano seleccionado.</p>' +
+          '<p class="muted-copy">El boton de grupo toma los proximos 10 pendientes del ano seleccionado. Si vuelves a presionarlo, continua con los siguientes y no repite los ya generados.</p>' +
           '<p class="status" id="reportsStatus" role="status"></p>' +
           '<div id="reportsOutput"></div>' +
         '</section>'
@@ -51,8 +51,8 @@
       recordPdf: ["generateRecordReport", { year: year }],
       financialPdf: ["generateRecordFinancialReport", { recordId: cleanRecordId, year: year }],
       yearStatement: ["generateYearEndStatement", { recordId: cleanRecordId, year: year, email: email }],
-      bulkStatements: ["generateBulkYearEndStatements", { year: year, retryFailed: false, batchSize: 10 }],
-      retryBulk: ["generateBulkYearEndStatements", { year: year, retryFailed: true, batchSize: 10 }],
+      bulkStatements: ["generateBulkYearEndStatements", { year: year, retryFailed: false, batchSize: 10, skipEmail: true }],
+      retryBulk: ["generateBulkYearEndStatements", { year: year, retryFailed: true, batchSize: 10, skipEmail: true }],
       auditPdf: ["generateAuditReport", { year: year }]
     };
     const request = actions[type];
@@ -81,7 +81,9 @@
       return;
     }
     if (data.results) {
-      output.innerHTML = app.renderTable(data.results, [["recordId", "Registro ID"], ["status", "Estado", app.badge], ["fileUrl", "Archivo"]]);
+      const summary = data.totals ? '<div class="panel"><strong>Progreso del grupo</strong><p>Procesados: ' + app.escapeHtml(String(data.totals.processed || 0)) + ' | Pendientes antes: ' + app.escapeHtml(String(data.totals.pendingBefore || 0)) + ' | Restantes: ' + app.escapeHtml(String(data.totals.remaining || 0)) + '</p></div>' : "";
+      const next = data.nextPending && data.nextPending.length ? '<div class="panel"><strong>Siguientes pendientes</strong>' + app.renderTable(data.nextPending, [["recordId", "Registro ID"], ["personName", "Persona"], ["total", "Total"]]) + '</div>' : '<div class="empty">No quedan recibos pendientes para este ano.</div>';
+      output.innerHTML = summary + app.renderTable(data.results, [["recordId", "Registro ID"], ["personName", "Persona"], ["total", "Total"], ["status", "Estado", app.badge], ["fileUrl", "Archivo"], ["error", "Error"]]) + next;
       return;
     }
     output.innerHTML = '<pre>' + app.escapeHtml(JSON.stringify(data, null, 2)) + '</pre>';
