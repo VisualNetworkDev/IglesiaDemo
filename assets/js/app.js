@@ -203,6 +203,8 @@
     if (state.activeView === "church") {
       window.setTimeout(updateMinistryDots, 0);
     }
+    const activeScroll = document.querySelector('[data-screen="' + state.activeView + '"] .screen-scroll');
+    if (activeScroll) activeScroll.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function setActiveRequest(requestName) {
@@ -213,6 +215,8 @@
     document.querySelectorAll("[data-request-form]").forEach(function (form) {
       form.classList.toggle("active", form.getAttribute("data-request-form") === target);
     });
+    const requestContent = document.querySelector(".request-content");
+    if (requestContent) requestContent.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function bindLiveButtons() {

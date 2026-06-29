@@ -145,12 +145,21 @@ img {
   color: var(--muted);
   font-size: 13px;
   font-weight: 900;
+  transition: transform .18s ease, background .22s ease, color .22s ease, box-shadow .22s ease;
 }
 
 .app-tabs button.active {
   background: var(--accent);
   color: #fff;
   box-shadow: 0 8px 18px rgba(47, 111, 115, .18);
+}
+
+.app-tabs button:active,
+.request-options button:active,
+.button:active,
+.action-card:active,
+.icon-arrow:active {
+  transform: scale(.98);
 }
 
 .app-stage {
@@ -171,12 +180,40 @@ img {
 
 .app-screen.active {
   display: block;
-  animation: screenIn .28s ease both;
+  animation: screenIn .34s cubic-bezier(.2, .8, .2, 1) both;
 }
 
 @keyframes screenIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translate3d(0, 12px, 0); filter: blur(2px); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); filter: blur(0); }
+}
+
+@keyframes panelIn {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .app-screen.active .home-side > *,
+  .app-screen.active .ministries-hero,
+  .app-screen.active .giving-hero,
+  .app-screen.active .giving-methods article,
+  .app-screen.active .event-card,
+  .app-screen.active .request-sidebar,
+  .request-card.active {
+    animation: panelIn .38s cubic-bezier(.2, .8, .2, 1) both;
+  }
+
+  .app-screen.active .home-side > :nth-child(2),
+  .app-screen.active .giving-methods article:nth-child(2) {
+    animation-delay: .04s;
+  }
+
+  .app-screen.active .home-side > :nth-child(3),
+  .app-screen.active .giving-methods article:nth-child(3) {
+    animation-delay: .08s;
+  }
+}
 }
 
 .screen-scroll,
@@ -184,6 +221,7 @@ img {
   height: 100%;
   min-height: 0;
   overflow: auto;
+  scroll-behavior: smooth;
   scrollbar-width: none;
 }
 
@@ -570,6 +608,12 @@ h3 {
   box-shadow: 0 16px 40px rgba(23,32,39,.08);
   cursor: pointer;
   user-select: none;
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+}
+
+.ministry-slide:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 46px rgba(23,32,39,.12);
 }
 
 .ministry-slide img {
@@ -879,6 +923,7 @@ h3 {
   color: var(--muted);
   text-align: left;
   font-weight: 900;
+  transition: transform .18s ease, background .22s ease, border-color .22s ease, color .22s ease;
 }
 
 .request-options button.active {
@@ -1274,6 +1319,11 @@ textarea {
     flex-direction: column;
   }
 
+  .ministries-screen {
+    grid-template-rows: auto auto auto;
+    padding-bottom: max(22px, env(safe-area-inset-bottom));
+  }
+
   .ministry-slider {
     display: flex;
     gap: 12px;
@@ -1402,11 +1452,11 @@ textarea {
   .ministry-slide {
     flex-basis: 88vw;
     max-width: none;
-    grid-template-rows: 220px auto;
+    grid-template-rows: 210px auto;
   }
 
   .ministry-slide img {
-    height: 220px;
+    height: 210px;
   }
 
   .ministry-slide h3 {
