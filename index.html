@@ -29,26 +29,33 @@
     <section class="app-screen active" data-screen="home" aria-label="Inicio">
       <div class="screen-scroll home-layout">
         <article class="hero-panel">
-          <p class="eyebrow">Fe, comunidad y servicio</p>
-          <h1 id="heroTitle">Bienvenido a Iglesia Nueva Esperanza</h1>
-          <p id="heroMessage">Un lugar para adorar, recibir apoyo, crecer en la fe y servir a nuestra ciudad con amor.</p>
-          <div class="home-actions">
-            <button type="button" class="action-card primary" data-open-request="newVisitor">
-              <span>Primera vez</span>
-              <strong>Quiero mas informacion</strong>
-            </button>
-            <button type="button" class="action-card" data-open-request="pastoralVisit">
-              <span>Cuidado pastoral</span>
-              <strong>Solicitar visita</strong>
-            </button>
-            <button type="button" class="action-card" data-view-link="agenda">
-              <span>Agenda</span>
-              <strong>Ver eventos</strong>
-            </button>
-            <button type="button" class="action-card live-only" data-open-live hidden>
-              <span>Transmisión</span>
-              <strong>Ahora En Vivo</strong>
-            </button>
+          <div class="hero-copy">
+            <p class="eyebrow">Fe, comunidad y servicio</p>
+            <h1 id="heroTitle">Bienvenido a Iglesia Nueva Esperanza</h1>
+            <p id="heroMessage">Un lugar para adorar, recibir apoyo, crecer en la fe y servir a nuestra ciudad con amor.</p>
+            <div class="home-actions">
+              <button type="button" class="action-card primary" data-open-request="newVisitor">
+                <span>Primera vez</span>
+                <strong>Quiero mas informacion</strong>
+              </button>
+              <button type="button" class="action-card" data-open-request="pastoralVisit">
+                <span>Cuidado pastoral</span>
+                <strong>Solicitar visita</strong>
+              </button>
+              <button type="button" class="action-card" data-view-link="agenda">
+                <span>Agenda</span>
+                <strong>Ver eventos</strong>
+              </button>
+              <button type="button" class="action-card live-only" data-open-live hidden>
+                <span>Transmisión</span>
+                <strong>Ahora En Vivo</strong>
+              </button>
+            </div>
+          </div>
+          <div class="hero-gallery" aria-hidden="true">
+            <img src="https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=900&q=80" alt="">
+            <img src="https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=900&q=80" alt="">
+            <img src="https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?auto=format&fit=crop&w=900&q=80" alt="">
           </div>
         </article>
 
@@ -106,10 +113,6 @@
             <h2>Ministerios</h2>
             <p>Explora las areas de servicio y crecimiento disponibles en la iglesia.</p>
           </div>
-          <div class="slider-actions" aria-label="Controles de ministerios">
-            <button type="button" class="icon-arrow" data-ministry-prev aria-label="Ministerio anterior">&lsaquo;</button>
-            <button type="button" class="icon-arrow" data-ministry-next aria-label="Ministerio siguiente">&rsaquo;</button>
-          </div>
         </section>
         <div id="ministriesGrid" class="ministry-slider" aria-live="polite"></div>
         <div id="ministryDots" class="slider-dots" aria-label="Paginacion de ministerios"></div>
@@ -145,14 +148,13 @@
             <button type="button" data-request-tab="assistance">Asistencia</button>
             <button type="button" data-request-tab="prayer">Oración</button>
             <button type="button" data-request-tab="contact">Contacto</button>
-            <button type="button" data-request-tab="contribution">Contribucion</button>
           </div>
         </aside>
 
         <div class="request-content">
           <form class="request-card active" data-request-form="newVisitor" data-api-form data-action="submitNewVisitorRequest">
             <div class="form-head">
-              <span>1 de 7</span>
+              <span>1 de 6</span>
               <h3>Soy nuevo / quiero mas informacion</h3>
               <p>Comparte como podemos ayudarte a conectar con la iglesia.</p>
             </div>
@@ -181,7 +183,7 @@
 
           <form class="request-card" data-request-form="pastoralVisit" data-api-form data-action="submitPastoralVisitRequest">
             <div class="form-head">
-              <span>2 de 7</span>
+              <span>2 de 6</span>
               <h3>Solicitud de visita</h3>
               <p>Comparte direccion, disponibilidad y motivo para coordinar una visita.</p>
             </div>
@@ -204,7 +206,7 @@
 
           <form class="request-card" data-request-form="counseling" data-api-form data-action="submitCounselingRequest">
             <div class="form-head">
-              <span>3 de 7</span>
+              <span>3 de 6</span>
               <h3>Solicitud de consejeria</h3>
               <p>El equipo revisara disponibilidad y te contactara para coordinar una cita.</p>
             </div>
@@ -226,7 +228,7 @@
 
           <form class="request-card" data-request-form="assistance" data-api-form data-action="submitAssistanceRequest">
             <div class="form-head">
-              <span>4 de 7</span>
+              <span>4 de 6</span>
               <h3>Solicitud de asistencia</h3>
               <p>Indica la necesidad principal para que el equipo pueda revisar el caso.</p>
             </div>
@@ -248,7 +250,7 @@
 
           <form class="request-card" data-request-form="prayer" data-api-form data-action="submitPrayerRequest">
             <div class="form-head">
-              <span>5 de 7</span>
+              <span>5 de 6</span>
               <h3>Solicitud de oracion</h3>
               <p>Comparte tu peticion con el nivel de privacidad que prefieras.</p>
             </div>
@@ -275,7 +277,7 @@
 
           <form class="request-card" data-request-form="contact" data-api-form data-action="submitContactRequest">
             <div class="form-head">
-              <span>6 de 7</span>
+              <span>6 de 6</span>
               <h3>Contacto general</h3>
               <p>Envia tu mensaje y el equipo correspondiente dara seguimiento.</p>
             </div>
@@ -295,79 +297,98 @@
             <p class="form-status" role="status"></p>
           </form>
 
-          <form class="request-card" data-request-form="contribution" data-api-form data-action="reportContribution">
-            <div class="form-head">
-              <span>7 de 7</span>
-              <h3>Reportar contribución enviada</h3>
-              <p>Este reporte no procesa cobros. Ayuda a confirmar un aporte enviado por metodos manuales.</p>
-            </div>
-            <div class="form-grid">
-              <label>Nombre completo<input name="name" required autocomplete="name"></label>
-              <label>Email<input name="email" type="email" autocomplete="email"></label>
-              <label>Teléfono<input name="phone" autocomplete="tel"></label>
-              <label>Tipo
-                <select name="type" required>
-                  <option value="diezmo">Diezmo</option>
-                  <option value="ofrenda">Ofrenda</option>
-                  <option value="donacion">Donación</option>
-                </select>
-              </label>
-              <label>Monto<input name="amount" type="number" min="0.01" step="0.01" required></label>
-              <label>Metodo
-                <select name="method" required>
-                  <option>Cash App</option>
-                  <option>Zelle</option>
-                  <option>Cash</option>
-                  <option>Check</option>
-                  <option>Otro</option>
-                </select>
-              </label>
-              <label>Referencia<input name="reference" placeholder="Codigo, nota o numero de check"></label>
-              <label>Fecha<input name="date" type="date" required></label>
-              <label class="full">Notas<textarea name="notes" rows="3"></textarea></label>
-            </div>
-            <label class="consent-box">
-              <input name="communicationConsent" type="checkbox" value="accepted" required>
-              <span>Autorizo a la iglesia a comunicarse conmigo sobre este reporte por llamada, texto o email. Entiendo que tesoreria revisara la informacion con discrecion.</span>
-            </label>
-            <input type="hidden" name="communicationConsentText" value="Consentimiento para comunicaciones sobre reporte de contribución por llamada, texto o email.">
-            <button type="submit" class="button primary">Enviar reporte</button>
-            <p class="form-status" role="status"></p>
-          </form>
         </div>
       </div>
     </section>
 
     <section class="app-screen" data-screen="giving" aria-label="Contribuir">
-      <div class="screen-scroll giving-layout">
-        <section class="panel">
-          <h2>Diezmos y donaciones</h2>
-          <p>Las contribuciones se reciben por métodos manuales. Revisa las instrucciones y luego reporta el aporte enviado si necesitas confirmación.</p>
-          <div class="giving-list">
-            <article>
-              <h3>Cash App</h3>
-              <p id="cashAppInstructions">Consulta las instrucciones vigentes con el equipo de tesoreria.</p>
-              <img id="cashAppQrImage" class="qr-image" alt="Foto del QR de Cash App" hidden>
-            </article>
-            <article>
-              <h3>Zelle</h3>
-              <p id="zelleInstructions">Consulta las instrucciones vigentes con el equipo de tesoreria.</p>
-              <img id="zelleQrImage" class="qr-image" alt="Foto del QR de Zelle" hidden>
-            </article>
-            <article>
-              <h3>Cash</h3>
-              <p id="cashInstructions">Entrega directa al equipo autorizado y solicita confirmacion.</p>
-            </article>
-            <article>
-              <h3>Check u otro metodo</h3>
-              <p id="checkInstructions">Consulta con tesoreria antes de enviar un check u otro metodo.</p>
-            </article>
+      <div class="screen-scroll giving-screen">
+        <section class="giving-hero">
+          <div>
+            <p class="eyebrow">Contribuciones</p>
+            <h2>Diezmos y donaciones</h2>
+            <p>Revisa las instrucciones oficiales y reporta el aporte enviado para que tesoreria pueda confirmarlo.</p>
           </div>
-          <button type="button" class="button primary" data-open-request="contribution">Reportar contribución enviada</button>
         </section>
+
+        <section class="giving-methods">
+          <article>
+            <h3>Cash App</h3>
+            <p id="cashAppInstructions">Consulta las instrucciones vigentes con el equipo de tesoreria.</p>
+            <img id="cashAppQrImage" class="qr-image" alt="Foto del QR de Cash App" hidden>
+          </article>
+          <article>
+            <h3>Zelle</h3>
+            <p id="zelleInstructions">Consulta las instrucciones vigentes con el equipo de tesoreria.</p>
+            <img id="zelleQrImage" class="qr-image" alt="Foto del QR de Zelle" hidden>
+          </article>
+          <article>
+            <h3>Cash</h3>
+            <p id="cashInstructions">Entrega directa al equipo autorizado y solicita confirmacion.</p>
+          </article>
+          <article>
+            <h3>Check u otro metodo</h3>
+            <p id="checkInstructions">Consulta con tesoreria antes de enviar un check u otro metodo.</p>
+          </article>
+        </section>
+
+        <form class="giving-report" id="givingReportForm" data-api-form data-action="reportContribution">
+          <div class="form-head">
+            <span>Confirmacion manual</span>
+            <h3>Reportar contribucion enviada</h3>
+            <p>Este reporte no procesa cobros. Solo ayuda a confirmar un aporte enviado por metodos manuales.</p>
+          </div>
+          <div class="form-grid">
+            <label>Nombre completo<input name="name" required autocomplete="name"></label>
+            <label>Email<input name="email" type="email" autocomplete="email"></label>
+            <label>Telefono<input name="phone" autocomplete="tel"></label>
+            <label>Tipo
+              <select name="type" required>
+                <option value="diezmo">Diezmo</option>
+                <option value="ofrenda">Ofrenda</option>
+                <option value="donacion">Donacion</option>
+              </select>
+            </label>
+            <label>Monto<input name="amount" type="number" min="0.01" step="0.01" required></label>
+            <label>Metodo
+              <select name="method" required>
+                <option>Cash App</option>
+                <option>Zelle</option>
+                <option>Cash</option>
+                <option>Check</option>
+                <option>Otro</option>
+              </select>
+            </label>
+            <label>Referencia<input name="reference" placeholder="Codigo, nota o numero de check"></label>
+            <label>Fecha<input name="date" type="date" required></label>
+            <label class="full">Notas<textarea name="notes" rows="3"></textarea></label>
+          </div>
+          <label class="consent-box">
+            <input name="communicationConsent" type="checkbox" value="accepted" required>
+            <span>Autorizo a la iglesia a comunicarse conmigo sobre este reporte por llamada, texto o email. Entiendo que tesoreria revisara la informacion con discrecion.</span>
+          </label>
+          <input type="hidden" name="communicationConsentText" value="Consentimiento para comunicaciones sobre reporte de contribucion por llamada, texto o email.">
+          <button type="submit" class="button primary">Enviar reporte</button>
+          <p class="form-status" role="status"></p>
+        </form>
       </div>
     </section>
   </main>
+
+  <section class="detail-modal hidden" id="detailModal" aria-hidden="true">
+    <div class="detail-backdrop" data-close-detail></div>
+    <article class="detail-card" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+      <button type="button" class="detail-close" data-close-detail aria-label="Cerrar">Cerrar</button>
+      <div class="detail-media" id="detailMedia"></div>
+      <div class="detail-body">
+        <p class="eyebrow" id="detailKicker"></p>
+        <h2 id="detailTitle"></h2>
+        <div class="event-meta" id="detailMeta"></div>
+        <p id="detailDescription"></p>
+        <div class="detail-gallery" id="detailGallery"></div>
+      </div>
+    </article>
+  </section>
 
   <script src="assets/js/api.js"></script>
   <script src="assets/js/forms.js"></script>

@@ -37,6 +37,7 @@
     initAppNavigation();
     initRequestTabs();
     initMinistrySliderControls();
+    initDetailModal();
     bindLiveButtons();
     ChurchFlowForms.init();
     loadPublicConfig();
@@ -51,8 +52,15 @@
     });
     document.querySelectorAll("[data-open-request]").forEach(function (button) {
       button.addEventListener("click", function () {
+        const target = button.getAttribute("data-open-request");
+        if (target === "contribution" || target === "giving") {
+          setActiveView("giving");
+          const form = document.getElementById("givingReportForm");
+          if (form) form.scrollIntoView({ behavior: "smooth", block: "start" });
+          return;
+        }
         setActiveView("requests");
-        setActiveRequest(button.getAttribute("data-open-request"));
+        setActiveRequest(target);
       });
     });
   }
@@ -71,7 +79,49 @@
     if (prev) prev.addEventListener("click", function () { moveMinistrySlider(-1); });
     if (next) next.addEventListener("click", function () { moveMinistrySlider(1); });
     const slider = document.getElementById("ministriesGrid");
-    if (slider) slider.addEventListener("scroll", updateMinistryDots);
+    if (slider) {
+      slider.addEventListener("scroll", updateMinistryDots);
+      slider.addEventListener("click", function (event) {
+        const card = event.target.closest("[data-ministry-detail]");
+        if (card) openMinistryDetail(Number(card.getAttribute("data-ministry-detail")));
+      });
+      slider.addEventListener("keydown", function (event) {
+        const card = event.target.closest("[data-ministry-detail]");
+        if (!card || (event.key !== "Enter" && event.key !== " ")) return;
+        event.preventDefault();
+        openMinistryDetail(Number(card.getAttribute("data-ministry-detail")));
+      });
+    }
+  }
+
+  function initDetailModal() {
+    const eventsGrid = document.getElementById("eventsGrid");
+    if (eventsGrid) {
+      eventsGrid.addEventListener("click", function (event) {
+        const card = event.target.closest("[data-event-detail]");
+        if (card) openEventDetail(Number(card.getAttribute("data-event-detail")));
+      });
+      eventsGrid.addEventListener("keydown", function (event) {
+        const card = event.target.closest("[data-event-detail]");
+        if (!card || (event.key !== "Enter" && event.key !== " ")) return;
+        event.preventDefault();
+        openEventDetail(Number(card.getAttribute("data-event-detail")));
+      });
+    }
+    document.querySelectorAll("[data-close-detail]").forEach(function (button) {
+      button.addEventListener("click", closeDetail);
+    });
+    const gallery = document.getElementById("detailGallery");
+    if (gallery) {
+      gallery.addEventListener("click", function (event) {
+        const image = event.target.closest("img");
+        if (!image) return;
+        document.getElementById("detailMedia").innerHTML = '<img src="' + escapeAttr(image.getAttribute("src")) + '" alt="">';
+      });
+    }
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") closeDetail();
+    });
   }
 
   function moveMinistrySlider(direction) {
@@ -168,13 +218,14 @@
     const dots = document.getElementById("ministryDots");
     if (!grid) return;
     const ministries = state.ministries.filter(function (item) { return item.visible !== false && item.visible !== "false"; });
+    state.visibleMinistries = ministries;
     if (!ministries.length) {
       grid.innerHTML = '<div class="empty-state">Los ministerios apareceran aqui cuando esten disponibles.</div>';
       if (dots) dots.innerHTML = "";
       return;
     }
     grid.innerHTML = ministries.map(function (item, index) {
-      return '<article class="ministry-slide">' +
+      return '<article class="ministry-slide" role="button" tabindex="0" data-ministry-detail="' + index + '">' +
         '<img src="' + escapeAttr(item.photoUrl || fallbackPhotos[index % fallbackPhotos.length]) + '" alt="">' +
         '<div><h3>' + escapeHtml(item.name || "Ministerio") + '</h3>' +
         '<p>' + escapeHtml(item.description || "") + '</p></div>' +
@@ -213,18 +264,104 @@
     const grid = document.getElementById("eventsGrid");
     if (!grid) return;
     const events = state.events.filter(function (item) { return item.active !== false && item.active !== "false"; });
+    state.visibleEvents = events;
     if (!events.length) {
       grid.innerHTML = '<div class="empty-state">Los eventos apareceran aqui cuando esten disponibles.</div>';
       return;
     }
     grid.innerHTML = events.map(function (item, index) {
-      return '<article class="event-card">' +
+      return '<article class="event-card" role="button" tabindex="0" data-event-detail="' + index + '">' +
         '<img src="' + escapeAttr(item.photoUrl || fallbackPhotos[index % fallbackPhotos.length]) + '" alt="">' +
         '<h3>' + escapeHtml(item.title || "Evento") + '</h3>' +
         '<div class="event-meta"><span>' + escapeHtml(item.date || "") + '</span><span>' + escapeHtml(item.time || "") + '</span><span>' + escapeHtml(item.location || "") + '</span></div>' +
         '<p>' + escapeHtml(item.description || "") + '</p>' +
         '</article>';
     }).join("");
+  }
+
+  function openMinistryDetail(index) {
+    const item = (state.visibleMinistries || [])[index];
+    if (!item) return;
+    const photos = normalizeGallery(item.photoUrl, item.galleryUrls, index);
+    openDetail({
+      kicker: "Ministerio",
+      title: item.name || "Ministerio",
+      description: item.description || "Informacion del ministerio disponible proximamente.",
+      meta: item.leader ? ["Lider: " + item.leader] : [],
+      photos: photos
+    });
+  }
+
+  function openEventDetail(index) {
+    const item = (state.visibleEvents || [])[index];
+    if (!item) return;
+    const photos = normalizeGallery(item.photoUrl, item.galleryUrls, index);
+    openDetail({
+      kicker: "Evento",
+      title: item.title || "Evento",
+      description: item.description || "Informacion del evento disponible proximamente.",
+      meta: [item.date, item.time, item.location].filter(Boolean),
+      photos: photos
+    });
+  }
+
+  function openDetail(detail) {
+    const modal = document.getElementById("detailModal");
+    if (!modal) return;
+    const photos = detail.photos && detail.photos.length ? detail.photos : [fallbackPhotos[0]];
+    document.getElementById("detailKicker").textContent = detail.kicker || "";
+    document.getElementById("detailTitle").textContent = detail.title || "";
+    document.getElementById("detailDescription").textContent = detail.description || "";
+    document.getElementById("detailMeta").innerHTML = (detail.meta || []).map(function (item) {
+      return '<span>' + escapeHtml(item) + '</span>';
+    }).join("");
+    document.getElementById("detailMedia").innerHTML = '<img src="' + escapeAttr(photos[0]) + '" alt="">';
+    document.getElementById("detailGallery").innerHTML = photos.map(function (url) {
+      return '<img src="' + escapeAttr(url) + '" alt="">';
+    }).join("");
+    modal.classList.remove("hidden");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeDetail() {
+    const modal = document.getElementById("detailModal");
+    if (!modal || modal.classList.contains("hidden")) return;
+    modal.classList.add("hidden");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  }
+
+  function normalizeGallery(primaryUrl, value, index) {
+    const urls = [];
+    if (primaryUrl) urls.push(primaryUrl);
+    parseGalleryUrls(value).forEach(function (url) { urls.push(url); });
+    let fallbackIndex = index;
+    while (uniqueUrls(urls).length < 3 && fallbackIndex < index + fallbackPhotos.length) {
+      urls.push(fallbackPhotos[fallbackIndex % fallbackPhotos.length]);
+      fallbackIndex += 1;
+    }
+    return uniqueUrls(urls);
+  }
+
+  function uniqueUrls(urls) {
+    return urls.filter(function (url, current, list) {
+      return url && list.indexOf(url) === current;
+    });
+  }
+
+  function parseGalleryUrls(value) {
+    if (!value) return [];
+    if (Array.isArray(value)) return value.filter(Boolean);
+    const text = String(value || "").trim();
+    if (!text) return [];
+    try {
+      const parsed = JSON.parse(text);
+      if (Array.isArray(parsed)) return parsed.filter(Boolean);
+    } catch (error) {
+      return text.split(/\s*[\n,|]\s*/).filter(Boolean);
+    }
+    return [];
   }
 
   function setText(id, value) {

@@ -2,9 +2,22 @@
   "use strict";
 
   const SESSION_KEY = "churchflow_admin_session";
+  const CACHE_TTL_MS = 120000;
+  const READ_ACTIONS = {
+    getDashboardData: true,
+    getRecords: true,
+    getRequests: true,
+    getFinanceRecords: true,
+    getEvents: true,
+    getMinistries: true,
+    getSettings: true,
+    getAuditLogs: true,
+    getDriveFiles: true
+  };
   const app = window.ChurchFlowAdmin || {};
   app.modules = app.modules || {};
   app.state = app.state || { session: null, currentModule: "dashboard", records: {} };
+  app.cache = app.cache || {};
 
   app.registerModule = function (name, module) {
     app.modules[name] = module;
@@ -26,6 +39,7 @@
 
   app.clearSession = function () {
     app.state.session = null;
+    app.clearCache();
     sessionStorage.removeItem(SESSION_KEY);
   };
 
@@ -33,10 +47,28 @@
     return app.state.session && app.state.session.token;
   };
 
+  app.clearCache = function () {
+    app.cache = {};
+  };
+
   app.api = function (action, payload, options) {
+    const config = options || {};
     const body = Object.assign({}, payload || {});
     if (app.token()) body.token = app.token();
-    return ChurchFlowAPI.request(action, body, options);
+    const isRead = READ_ACTIONS[action] === true;
+    const cacheKey = isRead ? action + ":" + JSON.stringify(body) : "";
+    const cached = cacheKey ? app.cache[cacheKey] : null;
+    if (cached && Date.now() - cached.time < (config.cacheTtlMs || CACHE_TTL_MS)) {
+      return Promise.resolve(cached.result);
+    }
+    return ChurchFlowAPI.request(action, body, config).then(function (result) {
+      if (isRead) {
+        app.cache[cacheKey] = { time: Date.now(), result: result };
+      } else if (action !== "validateSession") {
+        app.clearCache();
+      }
+      return result;
+    });
   };
 
   app.login = function (username, password) {

@@ -4,7 +4,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyPw8KqHcbsu2iW9nNy9lS0
   "use strict";
 
   const PLACEHOLDER_URL = "";
-  const DEFAULT_TIMEOUT_MS = 30000;
+  const DEFAULT_TIMEOUT_MS = 60000;
   const DEFAULT_TRANSPORT = "jsonp";
 
   function isConfigured() {
@@ -68,8 +68,10 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyPw8KqHcbsu2iW9nNy9lS0
 
       const callbackName = "__churchFlowCallback_" + Date.now() + "_" + Math.random().toString(36).slice(2);
       const script = document.createElement("script");
+      let settled = false;
       const timer = setTimeout(function () {
-        cleanup();
+        settled = true;
+        cleanupAfterTimeout();
         reject(new Error("La API no respondio dentro del tiempo esperado."));
       }, config.timeoutMs);
 
@@ -79,7 +81,16 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyPw8KqHcbsu2iW9nNy9lS0
         if (script.parentNode) script.parentNode.removeChild(script);
       }
 
+      function cleanupAfterTimeout() {
+        clearTimeout(timer);
+        window[callbackName] = function () {};
+        if (script.parentNode) script.parentNode.removeChild(script);
+        setTimeout(function () { delete window[callbackName]; }, 300000);
+      }
+
       window[callbackName] = function (result) {
+        if (settled) return;
+        settled = true;
         cleanup();
         resolve(result);
       };
@@ -90,6 +101,8 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyPw8KqHcbsu2iW9nNy9lS0
       url.searchParams.set("_", String(Date.now()));
 
       script.onerror = function () {
+        if (settled) return;
+        settled = true;
         cleanup();
         reject(new Error("No se pudo conectar con Apps Script. Revisa la URL publicada y los permisos del Web App."));
       };
@@ -114,7 +127,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyPw8KqHcbsu2iW9nNy9lS0
       const form = document.createElement("form");
       const timer = setTimeout(function () {
         cleanup();
-        reject(new Error("La subida no respondio dentro del tiempo esperado."));
+        reject(new Error("La API no respondio dentro del tiempo esperado."));
       }, config.timeoutMs || 120000);
 
       function cleanup() {

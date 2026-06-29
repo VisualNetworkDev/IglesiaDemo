@@ -334,6 +334,27 @@ textarea { resize: vertical; }
   margin: 0 0 12px;
 }
 
+.file-current {
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  min-height: 70px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: #f8fbfb;
+}
+
+.file-current strong {
+  color: var(--ink);
+}
+
+.file-current span {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 800;
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

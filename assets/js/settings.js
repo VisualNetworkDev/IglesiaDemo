@@ -52,10 +52,10 @@
               '<div class="form-grid">' +
                 '<label class="full">Instrucciones Cash App<textarea name="cashAppInstructions" rows="3"></textarea></label>' +
                 '<label>Foto del QR Cash App (opcional)<input id="cashAppQrFile" type="file" accept="image/*"></label>' +
-                '<label>Foto configurada Cash App<input name="cashAppQrPreview" disabled></label>' +
+                '<div class="file-current"><strong>Cash App QR</strong><span id="cashAppQrPreview">Sin foto guardada</span></div>' +
                 '<label class="full">Instrucciones Zelle<textarea name="zelleInstructions" rows="3"></textarea></label>' +
                 '<label>Foto del QR Zelle (opcional)<input id="zelleQrFile" type="file" accept="image/*"></label>' +
-                '<label>Foto configurada Zelle<input name="zelleQrPreview" disabled></label>' +
+                '<div class="file-current"><strong>Zelle QR</strong><span id="zelleQrPreview">Sin foto guardada</span></div>' +
                 '<label class="full">Instrucciones Cash<textarea name="cashInstructions" rows="3"></textarea></label>' +
                 '<label class="full">Instrucciones Check u otro metodo<textarea name="checkInstructions" rows="3"></textarea></label>' +
               '</div>' +
@@ -115,8 +115,8 @@
       Object.keys(settings).forEach(function (key) {
         if (form.elements[key]) form.elements[key].value = settings[key];
       });
-      form.elements.cashAppQrPreview.value = settings.cashAppQrUrl || "Sin foto de QR";
-      form.elements.zelleQrPreview.value = settings.zelleQrUrl || "Sin foto de QR";
+      document.getElementById("cashAppQrPreview").textContent = settings.cashAppQrUrl ? "Foto guardada en Drive" : "Sin foto guardada";
+      document.getElementById("zelleQrPreview").textContent = settings.zelleQrUrl ? "Foto guardada en Drive" : "Sin foto guardada";
       renderSchedule(settings.serviceScheduleJson, settings.serviceTimes);
     }).catch(app.showError);
   }
@@ -138,7 +138,7 @@
         return item.dayLabel + " " + item.startTime + (item.endTime ? " - " + item.endTime : "");
       }).join("; ");
       ChurchFlowAPI.setStatus(status, "Guardando...", "");
-      return app.api("updateSettings", { settings: ChurchFlowAPI.formToPayload(form) });
+      return app.api("updateSettings", { settings: ChurchFlowAPI.formToPayload(form) }, { transport: "iframe", timeoutMs: 120000 });
     }).then(function (result) {
       ChurchFlowAPI.setStatus(status, result.message || "Configuracion guardada.", "success");
       loadSettings();

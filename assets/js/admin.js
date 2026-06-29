@@ -174,6 +174,7 @@
       app.logout().then(showLogin);
     });
     document.getElementById("refreshButton").addEventListener("click", function () {
+      app.clearCache();
       renderCurrentModule();
     });
     document.getElementById("mobileMenuButton").addEventListener("click", function () {
@@ -219,6 +220,7 @@
     document.getElementById("adminUserLabel").textContent = [user.name || user.username, user.roleName].filter(Boolean).join(" · ");
     applyNavPermissions();
     setModule(app.state.currentModule || "dashboard");
+    preloadAdminData();
   }
 
   function showAdminLoading() {
@@ -258,6 +260,22 @@
     } catch (error) {
       app.setContent('<section class="panel"><p class="status error">' + app.escapeHtml(error.message) + '</p></section>');
     }
+  }
+
+  function preloadAdminData() {
+    window.setTimeout(function () {
+      const jobs = [];
+      if (app.can("forms", "read")) jobs.push(["getRequests", { category: "", status: "" }]);
+      if (app.can("records", "read")) jobs.push(["getRecords", { query: "", status: "" }]);
+      if (app.can("finance", "read")) jobs.push(["getFinanceRecords", { query: "", type: "", status: "", from: "", to: "" }]);
+      if (app.can("events", "read")) jobs.push(["getEvents", { includeInactive: true }]);
+      if (app.can("ministries", "read")) jobs.push(["getMinistries", { includeHidden: true }]);
+      if (app.can("settings", "read")) jobs.push(["getSettings", {}]);
+      if (app.can("files", "read") || app.can("files", "write")) jobs.push(["getDriveFiles", { fileType: "" }]);
+      jobs.forEach(function (job) {
+        app.api(job[0], job[1]).catch(function () {});
+      });
+    }, 700);
   }
 
   function loadRequests() {
