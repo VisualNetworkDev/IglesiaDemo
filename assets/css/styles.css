@@ -1231,6 +1231,9 @@ textarea {
 
   .hero-panel {
     min-height: auto;
+    height: auto;
+    align-items: start;
+    overflow: visible;
   }
 
   .hero-copy {
@@ -1272,11 +1275,14 @@ textarea {
   }
 
   .ministry-slider {
-    grid-auto-columns: minmax(0, calc(100% - 8px));
+    display: flex;
     gap: 12px;
+    padding-bottom: 8px;
   }
 
   .ministry-slide {
+    flex: 0 0 88vw;
+    max-width: 420px;
     min-height: auto;
     grid-template-rows: 240px auto;
   }
@@ -1363,11 +1369,18 @@ textarea {
   }
 
   .home-actions {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 18px;
   }
 
   .action-card {
-    min-height: 70px;
+    min-height: 62px;
+    padding: 12px 14px;
+  }
+
+  .action-card.primary {
+    grid-column: 1 / -1;
   }
 
   .home-story,
@@ -1387,6 +1400,8 @@ textarea {
   }
 
   .ministry-slide {
+    flex-basis: 88vw;
+    max-width: none;
     grid-template-rows: 220px auto;
   }
 
